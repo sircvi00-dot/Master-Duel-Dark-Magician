@@ -1,0 +1,1923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dark Magician Trainer</title>
+<meta name="theme-color" content="#f2f1f6">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Marcellus+SC&family=Barlow+Semi+Condensed:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --wine:#24143a; --deep:#1c1030; --ember:#6a3c9c; --flame:#9b6be0;
+  --gold:#94681a; --steel:#5f6f88; --bone:#221a2c; --mute:#615a6c;
+  --display:"Marcellus SC", "Trajan Pro", Georgia, serif;
+  --ui:"Barlow Semi Condensed", "Segoe UI", Roboto, Arial, sans-serif;
+}
+*{box-sizing:border-box}
+html{background:#f2f1f6}
+html,body{margin:0;min-height:100%}
+body{
+  font-family:var(--ui); color:var(--bone); font-size:16px; line-height:1.45;
+  background:
+    linear-gradient(180deg, #f7f6fa 0%, #ecebf2 100%);
+  background-attachment:fixed;
+  padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0);
+  -webkit-tap-highlight-color:transparent;
+}
+button{font-family:var(--ui);font-size:15px;color:var(--bone);background:#fff;
+  border:1px solid rgba(226,178,90,.5);border-radius:6px;padding:9px 14px;cursor:pointer;min-height:42px}
+button:hover{border-color:var(--gold);background:rgba(226,178,90,.12)}
+button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+button.primary{background:var(--ember);border-color:var(--ember);color:#fff;font-weight:600}
+.app{max-width:1100px;margin:0 auto;padding:10px 10px 18px;display:grid;gap:12px}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+h1{font-family:var(--display);font-weight:700;font-size:20px;margin:0;letter-spacing:.04em;color:var(--gold);white-space:nowrap}
+@media (max-width:420px){h1{font-size:16px}.tabs button{padding:6px 9px}}
+.tabs{display:flex;gap:4px}
+.tabs button{padding:6px 12px;min-height:36px;font-size:14px}
+.tabs button.on{background:var(--gold);color:#fff;border-color:var(--gold);font-weight:600}
+.lp{display:flex;justify-content:space-between;font-family:var(--display);font-size:14px;color:var(--mute);padding:0 4px}
+.lp b{color:var(--bone);font-size:17px;margin-left:6px}
+.stage{position:relative;width:100%;margin:0 auto;touch-action:manipulation}
+.board{position:absolute;left:0;top:0;width:100%;border-radius:10px;overflow:hidden;
+  background:
+    linear-gradient(180deg, #e7e5ef 0%, #dedce9 50%, #e8e3ef 100%);
+  border:1px solid rgba(0,0,0,.14);box-shadow:inset 0 0 18px rgba(0,0,0,.06)}
+.sigil{position:absolute;border-radius:50%;border:1px solid rgba(0,0,0,.1);pointer-events:none}
+.sigil.two{border-style:dashed;border-color:rgba(106,60,156,.15)}
+.midline{position:absolute;left:4%;right:4%;height:1px;background:linear-gradient(90deg,transparent,rgba(0,0,0,.18),transparent)}
+.zone{position:absolute;border:1px solid rgba(0,0,0,.16);background:rgba(255,255,255,.55);border-radius:4px;
+  box-shadow:none}
+.zone.opp{border-color:rgba(95,112,136,.3);background:rgba(240,244,250,.6)}
+.zone.emz{border-radius:50%/12%;border-color:rgba(106,60,156,.45)}
+.zone .lab{position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:9px;color:rgba(0,0,0,.4);letter-spacing:.02em}
+.handbar{position:absolute;left:0;width:100%;border-radius:10px;background:#e5e3ec;border:1px solid rgba(0,0,0,.1)}
+.card{position:absolute;left:0;top:0;border-radius:3px;overflow:hidden;cursor:pointer;
+  transition:transform .7s cubic-bezier(.2,.8,.2,1), opacity .45s ease, box-shadow .3s;
+  box-shadow:0 3px 8px rgba(0,0,0,.28);background:#2a1a3e}
+.card img{width:100%;height:100%;object-fit:cover;display:block}
+.card .fb{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;
+  font-size:8px;line-height:1.1;padding:3px;background:linear-gradient(#6a3c9c,#2c1747);color:#fff}
+.card .back,.pile{background:
+  radial-gradient(ellipse 30% 22% at 50% 50%, #c9a6f2 0 40%, transparent 42%),
+  radial-gradient(ellipse 42% 34% at 50% 50%, #4a2475 0 60%, transparent 62%),
+  linear-gradient(135deg,#2a1546,#150a24 60%,#2a1546)}
+.card .back{position:absolute;inset:0;display:none;border:2px solid #3a2457}
+.card .back::after,.pile::after{content:"";position:absolute;inset:16% 12%;border:1.5px solid rgba(226,178,90,.65);border-radius:50%}
+.card.down .back{display:block}
+.card.down img,.card.down .fb{visibility:hidden}
+.card.act{box-shadow:0 0 0 2px var(--gold),0 0 18px 4px rgba(155,107,224,.8);animation:pulse 1.1s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 2px var(--gold),0 0 28px 8px rgba(155,107,224,.95)}}
+.pile{position:absolute;border-radius:3px;border:2px solid #3a2457;box-shadow:2px 3px 0 #140a20,4px 6px 0 #0d0616}
+.pile .n{position:absolute;bottom:-1px;right:2px;font-size:10px;color:var(--gold);font-weight:600;z-index:1}
+.flash{position:absolute;border-radius:50%;border:2px solid var(--gold);pointer-events:none;
+  box-shadow:0 0 30px 6px rgba(226,178,90,.8), inset 0 0 20px rgba(155,107,224,.8);animation:flash 1s ease-out forwards;z-index:80}
+@keyframes flash{from{transform:scale(.2);opacity:1}to{transform:scale(1.7);opacity:0}}
+.banner{position:absolute;left:0;right:0;text-align:center;font-family:var(--display);font-weight:700;color:var(--gold);
+  text-shadow:0 0 10px #fff,0 0 4px #fff,0 2px 6px rgba(106,60,156,.6);color:#5b2d8e;pointer-events:none;z-index:90;animation:ban 1.4s ease-out forwards}
+@keyframes ban{0%{opacity:0;transform:scale(1.3)}20%{opacity:1;transform:scale(1)}75%{opacity:1}100%{opacity:0}}
+.panel{display:grid;gap:10px;align-content:start}
+.caption{background:#fff;border:1px solid rgba(0,0,0,.12);border-radius:10px;padding:12px 14px;min-height:96px}
+.caption .k{font-family:var(--display);font-size:13px;color:var(--gold);margin-bottom:4px}
+.caption p{margin:0}
+.ctrls{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ctrls .sp{margin-left:auto;font-size:14px;color:var(--mute);display:flex;gap:6px;align-items:center}
+select{font-family:var(--ui);font-size:15px;background:#fff;color:var(--bone);border:1px solid rgba(0,0,0,.2);border-radius:6px;padding:8px}
+.opts{display:grid;gap:6px}
+.opts button{text-align:left}
+.opts button.bad{border-color:var(--ember);animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.fbk{font-size:15px;color:var(--mute);min-height:22px}
+.fbk.ok{color:#2e7d32}.fbk.no{color:#c62828}
+.deckview{display:none}
+.deckview h2{font-family:var(--display);font-size:16px;color:var(--gold);margin:14px 0 8px;font-weight:500}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px}
+.dcard{position:relative;cursor:pointer;border-radius:4px;overflow:hidden;aspect-ratio:59/86;background:#2a1a3e;box-shadow:0 3px 8px rgba(0,0,0,.5)}
+.dcard img{width:100%;height:100%;object-fit:cover}
+.dcard .q{position:absolute;right:3px;bottom:3px;background:var(--deep);color:var(--gold);border:1px solid var(--gold);border-radius:4px;font-size:12px;padding:0 5px}
+.modal{position:fixed;inset:0;background:rgba(30,25,25,.55);display:none;align-items:center;justify-content:center;z-index:200;padding:16px}
+.modal.on{display:flex}
+.mbox{max-width:760px;width:100%;max-height:min(62vh,520px);background:#fbfaf8;
+  border:1px solid var(--gold);border-radius:12px;padding:10px;display:grid;gap:10px;grid-template-columns:34% minmax(0,1fr);align-items:start}
+.mbox img{width:100%;border-radius:5px;box-shadow:0 4px 12px rgba(0,0,0,.6)}
+.mtext{display:flex;flex-direction:column;gap:8px;max-height:calc(min(62vh,520px) - 20px);min-height:0}
+.mscroll{overflow:auto;display:flex;flex-direction:column;gap:8px;min-height:0;flex:1}
+.mbox h3{font-family:var(--display);color:var(--gold);margin:0;font-size:15px;line-height:1.2}
+.mbox .role{background:rgba(226,178,90,.1);border-left:3px solid var(--gold);padding:6px 8px;font-size:13px;line-height:1.35}
+.mbox .desc{font-size:12px;line-height:1.45;color:var(--mute);white-space:pre-line}
+.mbox #mClose{flex:none;padding:9px}
+@media (min-width:760px){.mbox{grid-template-columns:300px minmax(0,1fr);padding:14px;gap:14px}
+  .mbox h3{font-size:19px}.mbox .role{font-size:15px}.mbox .desc{font-size:14px}}
+.pview{max-width:760px;width:100%;max-height:min(70vh,600px);background:#fbfaf8;border:1px solid var(--gold);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.pview h3{font-family:var(--display);color:var(--gold);margin:0;font-size:17px}
+.pview .pg{overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:6px;min-height:0}
+.pview .pc{touch-action:none;position:relative;aspect-ratio:59/86;border-radius:4px;overflow:hidden;background:#2a1a3e;cursor:pointer;font-size:10px;color:var(--mute);display:flex;align-items:center;justify-content:center;text-align:center;padding:2px}
+.pview .pc img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pview .pc .q{position:absolute;right:2px;bottom:2px;background:var(--deep);color:var(--gold);border:1px solid var(--gold);border-radius:4px;font-size:11px;padding:0 4px;z-index:1}
+.pview .empty{color:var(--mute);font-size:14px}
+.stage{-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
+header{flex-wrap:wrap}
+#cap.bad{color:#c62828}
+.pcard{touch-action:none;-webkit-user-drag:none}
+.pcard img{pointer-events:none}
+.card.pick{box-shadow:0 0 0 3px var(--gold),0 0 16px 4px rgba(226,178,90,.9)}
+.card .lv{position:absolute;top:1px;left:1px;z-index:2;font-size:8px;line-height:1.2;padding:0 2px;border-radius:2px;background:rgba(0,0,0,.72);color:var(--gold)}
+.card .lv:empty{display:none}.card .lv.mod{background:var(--ember);color:#fff}
+.toast{position:absolute;left:4%;right:4%;transform:translateY(-50%);z-index:400;text-align:center;font-size:14px;line-height:1.35;
+  background:#fff;color:var(--bone);border:1px solid var(--gold);border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.18);padding:9px 12px;opacity:0;pointer-events:none;transition:opacity .25s}
+.toast.on{opacity:1}.toast.bad{border-color:var(--ember);color:#b3261e;box-shadow:0 0 14px rgba(106,60,156,.4)}
+.selbar{background:rgba(226,178,90,.12);border:1px solid var(--gold);border-radius:10px;padding:10px 12px;display:grid;gap:8px}
+.selbar p{margin:0;font-size:15px}
+.pstat{font-size:14px;color:var(--mute)}
+.pstatrow{display:flex;align-items:center;gap:9px}
+.bigcard{position:fixed;inset:0;z-index:300;background:rgba(20,16,16,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;cursor:zoom-out}
+.bigcard img{max-width:100%;max-height:calc(100% - 40px);border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.bigcard p{color:#fff;opacity:.75;margin:10px 0 0;font-size:14px}
+#mImg{cursor:zoom-in}
+.owe{display:none;flex:none;vertical-align:-1px;margin-right:8px;width:13px;height:13px;border-radius:50%;background:#bdb5ab;border:1px solid rgba(0,0,0,.45);transition:background .3s,box-shadow .3s}
+body.playing .owe{display:inline-block}
+.owe.on{background:#ff3b30;border-color:#ffb3ad;box-shadow:0 0 6px 2px rgba(255,59,48,.75);animation:owe 1.1s ease-in-out infinite}
+@keyframes owe{50%{box-shadow:0 0 14px 5px rgba(255,59,48,.9)}}
+#pUndo:disabled{opacity:.4}
+.dmode{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--mute)}
+.dmode button{padding:6px 9px;font-size:13px}
+.dmode button.on{background:var(--gold);color:#fff;border-color:var(--gold)}
+.mbtns{display:flex;gap:8px;flex:none}.mbtns button{flex:1;padding:9px}
+#mCoach.on{background:rgba(226,178,90,.18)}
+.coach h4{font-family:var(--display);color:var(--gold);margin:4px 0 2px;font-size:13px;font-weight:500;letter-spacing:.04em}
+.coach ul{margin:0;padding-left:18px;font-size:13px;line-height:1.4;display:grid;gap:4px}
+.coach .now li{color:#8a4b00}.coach .dont li::marker{color:#c62828}
+.lvrow{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--mute)}.lvrow button{padding:4px 10px}
+.sheet{max-width:420px;width:100%;max-height:82vh;overflow:auto;background:#fbfaf8;border:1px solid var(--gold);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:7px}
+.sheet .hd{display:flex;gap:10px;align-items:center;margin-bottom:2px}
+.sheet .hd img{width:52px;border-radius:3px}
+.sheet button.used{opacity:.45;text-decoration:line-through}
+.sheet .wn{font-size:14px;line-height:1.4;background:#fff;border:1px solid rgba(168,116,31,.35);border-radius:8px;padding:8px 10px}
+.sheet .wn.best{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+.sheet .wn ul{margin:4px 0 0;padding-left:18px}.sheet .wn li{margin:3px 0}
+.sheet ol.bp{margin:0;padding-left:22px}.sheet ol.bp li{margin:5px 0}
+.sheet .wnote{font-size:12px;color:var(--mute);margin:0}
+.sheet h3{font-family:var(--display);color:var(--gold);margin:0;font-size:16px}
+.sheet .hd p{margin:2px 0 0;font-size:13px;color:var(--mute)}
+.sheet button{text-align:left}.sheet button.cancel{text-align:center;margin-top:4px}
+@media (min-width:980px){.main{display:grid;grid-template-columns:minmax(0,600px) minmax(0,1fr);gap:18px;align-items:start}}
+.status{font-size:13px;color:var(--mute);text-align:center}
+@media (prefers-reduced-motion:reduce){.card{transition:none}.card.act,.flash,.banner,.opts button.bad{animation:none}}
+
+h1{color:var(--ember);letter-spacing:.06em}
+.tabs button.on{background:var(--ember);border-color:var(--ember)}
+button{border-color:rgba(106,60,156,.32)}
+button:hover{border-color:var(--ember);background:rgba(106,60,156,.07)}
+button:focus-visible{outline-color:var(--ember)}
+.dmode button.on{background:var(--ember);border-color:var(--ember)}
+.caption .k,.mbox h3,.sheet h3,.pview h3,.deckview h2,.coach h4{color:var(--ember)}
+.linebar{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:14px;color:var(--mute)}
+.linebar label{display:flex;gap:8px;align-items:center;color:var(--bone);font-weight:600}
+.linebar #lineBlurb{flex:1 1 240px;font-size:13px;line-height:1.35}
+.opts button.nextq{text-align:center;font-weight:600}
+.sheet button.pk{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.sheet button.pk small{color:var(--mute);font-size:12px;white-space:nowrap}
+.sheet button.pk.on{background:rgba(106,60,156,.12);border-color:var(--ember);box-shadow:0 0 0 1px var(--ember) inset}
+.sheet button.pk:disabled{opacity:.5}
+.sheet button.primary.cancel{background:var(--ember);color:#fff}
+.sheet button.primary.cancel:disabled{opacity:.45}
+.stylesview{display:none;max-width:720px}
+.stylesview .sintro{margin:4px 0 14px;color:var(--mute);font-size:15px;max-width:62ch}
+.style{border-left:3px solid var(--ember);padding:2px 0 4px 14px;margin:0 0 22px}
+.style h2{font-family:var(--display);font-weight:400;color:var(--ember);font-size:21px;margin:0 0 6px;letter-spacing:.03em}
+.style p{margin:0 0 8px;max-width:64ch;line-height:1.5}
+.style p.what{font-size:17px;color:var(--bone)}
+.style p.watch{font-size:14px;color:#7a4a00}
+.style .chips{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 10px}
+.style .chip{min-height:32px;padding:4px 10px;font-size:13px;border-radius:16px;background:#fff}
+.stylesview .snote{font-size:13px;color:var(--mute);max-width:64ch;border-top:1px solid rgba(0,0,0,.1);padding-top:10px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Dark Magician</h1>
+    <div class="tabs" role="tablist">
+      <button id="tWatch" class="on">Watch</button>
+      <button id="tPractice">Practice</button>
+      <button id="tPlay">Play</button>
+      <button id="tDeck">Deck</button>
+      <button id="tStyles">Styles</button>
+    </div>
+  </header>
+
+  <div class="main" id="duelview">
+    <div>
+      <div class="lp"><span>Opponent<b>8000</b></span><span><span id="owe" class="owe" role="status" aria-label=""></span>You<b>8000</b></span></div>
+      <div class="stage" id="stage"></div>
+      <div class="status" id="status">Loading card images…</div>
+    </div>
+    <div class="panel">
+      <div class="caption"><div class="k" id="stepk"></div><p id="cap"></p></div>
+      <div id="lineBar" class="linebar"><label for="lineSel">Line <select id="lineSel"></select></label><span id="lineBlurb"></span></div>
+      <div id="watchCtrls" class="ctrls">
+        <button id="bPrev" aria-label="Previous step">◀ Back</button>
+        <button id="bPlay" class="primary">Auto play</button>
+        <button id="bNext" aria-label="Next step">Next ▶</button>
+        <button id="bReset">Restart</button>
+        <label class="sp">Speed
+          <select id="speed"><option value="1.6">Slow</option><option value="1" selected>Normal</option><option value="0.6">Fast</option></select>
+        </label>
+      </div>
+      <div id="practice" style="display:none" class="panel">
+        <div class="k" style="font-family:var(--display);color:var(--gold)">What’s your next move?</div>
+        <div class="opts" id="opts"></div>
+        <div class="fbk" id="fbk"></div>
+        <div class="ctrls"><button id="qUndo" disabled>↶ Undo</button><button id="pReset">Start over</button><span class="sp" id="score"></span></div>
+      </div>
+      <div id="playCtrls" style="display:none" class="panel">
+        <div id="selBar" class="selbar" style="display:none"><p id="selT"></p>
+          <div class="ctrls"><button id="selOk" class="primary">Confirm</button><button id="selNo">Cancel</button></div></div>
+        <div class="ctrls"><button id="pNext" class="primary">End turn</button><button id="pUndo" disabled>↶ Undo</button><button id="pBan">Banished (0)</button><button id="pNew">New duel</button><button id="pWhat">💡 What now?</button></div>
+        <div class="pstat" id="pstat"></div>
+        <div class="dmode" id="dmode">Play cards as:
+          <button data-m="normal" class="on">Normal Summon</button><button data-m="set">Set</button><button data-m="spa">Special ATK</button><button data-m="spd">Special DEF</button></div>
+      </div>
+      <p id="hint" style="font-size:14px;color:var(--mute);margin:0">Tap any card on the field or in your hand to see its art and full text.</p>
+    </div>
+  </div>
+
+  <div class="deckview" id="deckview"></div>
+  <div class="stylesview" id="stylesview"></div>
+</div>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true">
+  <div class="mbox" id="mbox"></div>
+</div>
+
+<script>
+const API = "https://db.ygoprodeck.com/api/v7/cardinfo.php?name=";
+const CACHE_KEY = "dm-cards-v1";
+const BAKED = {"Dark Magician": {"id": 36996508, "desc": "The ultimate wizard in terms of attack and defense.", "type": "Normal Monster", "level": 7, "attribute": "DARK", "race": "Spellcaster", "atk": 2500, "def": 2100}, "Magicians' Souls": {"id": 97631303, "desc": "You can send up to 2 Spells/Traps from your hand and/or field to the GY; draw that many cards. If this card is in your hand: You can send 1 Level 6 or higher Spellcaster monster from your Deck to the GY, then activate 1 of these effects;\n● Special Summon this card.\n● Send this card to the GY, then, you can Special Summon 1 \"Dark Magician\" or 1 \"Dark Magician Girl\" from your GY.\nYou can only use each effect of \"Magicians' Souls\" once per turn.", "type": "Effect Monster", "level": 1, "attribute": "DARK", "race": "Spellcaster", "atk": 0, "def": 0}, "Magikuriboh": {"id": 31699677, "desc": "During the Main or Battle Phase, if you took damage by battle or an opponent's card effect this turn (Quick Effect): You can send this card from your hand to the GY; Special Summon 1 \"Dark Magician\" or 1 \"Dark Magician Girl\" from your Deck or GY. If a face-up Spellcaster monster(s) you control is destroyed by battle or an opponent's card effect: You can add this card from the GY to your hand. You can only use each effect of \"Magikuriboh\" once per turn.", "type": "Effect Monster", "level": 1, "attribute": "DARK", "race": "Fiend", "atk": 300, "def": 200}, "Magician's Rod": {"id": 7084129, "desc": "When this card is Normal Summoned: You can add 1 Spell/Trap from your Deck to your hand, that mentions \"Dark Magician\". During your opponent's turn, if you activate a Spell/Trap Card or effect while this card is in your GY (except during the Damage Step): You can Tribute 1 Spellcaster monster; add this card to your hand. You can only use each effect of \"Magician's Rod\" once per turn.", "type": "Effect Monster", "level": 3, "attribute": "DARK", "race": "Spellcaster", "atk": 1600, "def": 100}, "Dark Magician Girl": {"id": 38033120, "desc": "Gains 300 ATK for every \"Dark Magician\" or \"Magician of Black Chaos\" in the GYs.", "type": "Effect Monster", "level": 6, "attribute": "DARK", "race": "Spellcaster", "atk": 2000, "def": 1700}, "Apprentice Illusion Magician": {"id": 30603688, "desc": "You can Special Summon this card (from your hand) by discarding 1 card. If this card is Normal or Special Summoned: You can add 1 \"Dark Magician\" from your Deck to your hand. During damage calculation, if your other DARK Spellcaster monster battles an opponent's monster (Quick Effect): You can send this card from your hand or face-up field to the GY; that monster you control gains 2000 ATK/DEF during that damage calculation only.", "type": "Effect Monster", "level": 6, "attribute": "DARK", "race": "Spellcaster", "atk": 2000, "def": 1700}, "Timaeus the United Dragon": {"id": 3078380, "desc": "You can send 1 Spellcaster monster, or 1 Spell/Trap that mentions \"Dark Magician\", from your hand or face-up field to the GY; Special Summon this card from your hand. During your Main Phase: You can Fusion Summon 1 Fusion Monster from your Extra Deck, using monsters from your hand or field as material, including a Spellcaster monster. You can only use each effect of \"Timaeus the United Dragon\" once per turn.", "type": "Effect Monster", "level": 8, "attribute": "LIGHT", "race": "Dragon", "atk": 2800, "def": 1800}, "Illusion of Chaos": {"id": 12266229, "desc": "You can Ritual Summon this card with \"Chaos Form\". You can reveal this card in your hand; add 1 \"Dark Magician\", or 1 non-Ritual Monster that mentions it, from your Deck to your hand, then place 1 card from your hand on top of the Deck. When your opponent activates a monster effect (Quick Effect): You can return this card to the hand, and if you do, Special Summon 1 \"Dark Magician\" from your GY, and if you do that, negate that activated effect. You can only use each effect of \"Illusion of Chaos\" once per turn.", "type": "Ritual Effect Monster", "level": 7, "attribute": "DARK", "race": "Spellcaster", "atk": 2100, "def": 2500}, "Thousand Knives": {"id": 63391643, "desc": "If you control \"Dark Magician\": Target 1 monster your opponent controls; destroy that target.", "type": "Spell Card", "race": "Normal"}, "Dark Magic Attack": {"id": 2314238, "desc": "If you control \"Dark Magician\": Destroy all Spells and Traps your opponent controls.", "type": "Spell Card", "race": "Normal"}, "Preparation of Rites": {"id": 96729612, "desc": "Add 1 Level 7 or lower Ritual Monster from your Deck to your hand, then you can add 1 Ritual Spell from your GY to your hand.", "type": "Spell Card", "race": "Normal"}, "The Eye of Timaeus": {"id": 1784686, "desc": "(This card is also always treated as \"Legendary Dragon Timaeus\".)\nTarget 1 \"Dark Magician\" monster you control; Fusion Summon 1 Fusion Monster from your Extra Deck that lists that monster on the field as Fusion Material, using it as the entire Fusion Material. You can only activate 1 \"The Eye of Timaeus\" per turn.\n\n* The above text is unofficial and describes the card's functionality in the OCG.", "type": "Spell Card", "race": "Normal"}, "Magicalized Fusion": {"id": 11827244, "desc": "Fusion Summon 1 Spellcaster Fusion Monster from your Extra Deck, by banishing Fusion Materials mentioned on it from your field or GY. You can only activate 1 \"Magicalized Fusion\" per turn.", "type": "Spell Card", "race": "Normal"}, "Magician's Salvation": {"id": 95477924, "desc": "When this card is activated: You can Set 1 \"Eternal Soul\" directly from your Deck. If you Normal or Special Summon \"Dark Magician\" or \"Dark Magician Girl\" (except during the Damage Step): You can target 1 of those monsters; Special Summon 1 \"Dark Magician\" or \"Dark Magician Girl\" from your GY, with a different name than that monster. You can only use this effect of \"Magician's Salvation\" once per turn. You can only activate 1 \"Magician's Salvation\" per turn.", "type": "Spell Card", "race": "Field"}, "Chaos Form": {"id": 21082832, "desc": "This card can be used to Ritual Summon any \"Chaos\" or \"Black Luster Soldier\" Ritual Monster. You must also Tribute monsters from your hand or field and/or banish \"Blue-Eyes White Dragon\" or \"Dark Magician\" from your GY, whose total Levels exactly equal the Level of the \"Chaos\" or \"Black Luster Soldier\" Ritual Monster you Ritual Summon.", "type": "Spell Card", "race": "Ritual"}, "Dark Magical Circle": {"id": 47222536, "desc": "When this card is activated: Look at the top 3 cards of your Deck, then you can reveal 1 of them that is \"Dark Magician\" or a Spell/Trap that mentions \"Dark Magician\", and add it to your hand, also place the remaining cards on top of your Deck in any order. If \"Dark Magician\" is Normal or Special Summoned to your field (except during the Damage Step): You can target 1 card your opponent controls; banish it. You can only use each effect of \"Dark Magical Circle\" once per turn.", "type": "Spell Card", "race": "Continuous"}, "Soul Servant": {"id": 23020408, "desc": "Place 1 card on top of the Deck from your hand, Deck, or GY, that is \"Dark Magician\" or mentions \"Dark Magician\" or \"Dark Magician Girl\", except \"Soul Servant\". During your Main Phase: You can banish this card from your GY; draw cards equal to the number of \"Palladium\" monsters, \"Dark Magician\", and/or \"Dark Magician Girl\", with different names, on the field and in the GYs. You can only use this effect of \"Soul Servant\" once per turn.", "type": "Spell Card", "race": "Quick-Play"}, "Secrets of Dark Magic": {"id": 59514116, "desc": "Activate 1 of the following effects.\n● Fusion Summon 1 Fusion Monster from your Extra Deck, using monsters from your hand or field, including \"Dark Magician\" or \"Dark Magician Girl\", as Fusion Material.\n● Ritual Summon 1 Ritual Monster from your hand, by Tributing monsters from your hand or field, including \"Dark Magician\" or \"Dark Magician Girl\", whose total Levels equal or exceed the Level of the Ritual Monster.", "type": "Spell Card", "race": "Quick-Play"}, "The Gaze of Timaeus": {"id": 22283204, "desc": "Target 1 \"Dark Magician\" or \"Dark Magician Girl\" in your field or GY; Fusion Summon 1 Fusion Monster from your Extra Deck that mentions that monster as material, by shuffling it into the Deck as material (this is treated as a Fusion Summon with \"The Eye of Timaeus\"), but banish it during the End Phase of the next turn. You can only activate 1 \"The Gaze of Timaeus\" per turn.", "type": "Spell Card", "race": "Quick-Play"}, "Dark Magic Talisman": {"id": 71440209, "desc": "You can activate this card the turn it was Set, by revealing 1 Spellcaster monster in your hand. When a monster effect is activated in response to the card or effect activation of a card that mentions \"Dark Magician\": Negate that effect, and if you do, for the rest of this turn, negate the activated effects of monsters with that same original name. If you Special Summon \"Dark Magician\" while this card is in your GY (except during the Damage Step): You can pay 2500 LP; Set this card.", "type": "Trap Card", "race": "Normal"}, "Eternal Soul": {"id": 48680970, "desc": "Every \"Dark Magician\" in your Monster Zone is unaffected by your opponent's card effects. If this face-up card leaves the field: Destroy all monsters you control. You can only use the following effect of \"Eternal Soul\" once per turn. You can activate 1 of these effects;\n● Special Summon 1 \"Dark Magician\" from your hand or GY.\n● Add 1 \"Dark Magic Attack\" or \"Thousand Knives\" from your Deck to your hand.", "type": "Trap Card", "race": "Continuous"}, "Dark Magician the Dragon Knight": {"id": 41721210, "desc": "\"Dark Magician\" + 1 Dragon monster\nThis card's name becomes \"Dark Magician\" while on the field or in the GY. Your opponent cannot target Spells/Traps you control with card effects, also they cannot be destroyed by your opponent's card effects.", "type": "Fusion Monster", "level": 8, "attribute": "DARK", "race": "Dragon", "atk": 3000, "def": 2500}, "The Dark Magicians": {"id": 50237654, "desc": "\"Dark Magician\" or \"Dark Magician Girl\" + 1 Spellcaster monster\nOnce per turn, if a Spell/Trap Card or effect is activated (except during the Damage Step): You can draw 1 card, then if it was a Spell/Trap, you can Set it, and if it was a Trap or Quick-Play Spell, you can activate it this turn. If this card is destroyed: You can Special Summon both 1 \"Dark Magician\" and 1 \"Dark Magician Girl\" from your hand, Deck, and/or GY.", "type": "Fusion Monster", "level": 8, "attribute": "DARK", "race": "Spellcaster", "atk": 2800, "def": 2300}, "Master of Chaos": {"id": 85059922, "desc": "\"Dark Magician\" + 1 \"Chaos\" or \"Black Luster Soldier\" Ritual Monster\nIf this card is Fusion Summoned: You can target 1 LIGHT or DARK monster in your GY; Special Summon it. You can Tribute 1 LIGHT and 1 DARK monster; banish all monsters your opponent controls. If this Fusion Summoned card is destroyed by battle or card effect: You can target 1 Spell in your GY; add it to your hand. You can only use each effect of \"Master of Chaos\" once per turn.", "type": "Fusion Monster", "level": 8, "attribute": "DARK", "race": "Spellcaster", "atk": 3000, "def": 2500}, "Dark Magician the Knight of Dragon Magic": {"id": 5829717, "desc": "\"Dark Magician\" + 1 Level 7 or higher Dragon or Warrior monster\nIf your monster attacks a Defense Position monster, inflict piercing battle damage to your opponent. Once per turn, when your monster destroys an opponent's monster by battle: You can inflict damage to your opponent equal to the destroyed monster's original ATK. If this card is destroyed: You can Special Summon both 1 \"Dark Magician\" and 1 \"Gaia the Dragon Champion\" from your hand, Deck, Extra Deck, and/or GY.", "type": "Fusion Monster", "level": 8, "attribute": "DARK", "race": "Dragon", "atk": 2900, "def": 2400}, "Dark Magician of Destruction": {"id": 59400890, "desc": "\"Dark Magician\" + 1 LIGHT or DARK monster\nMust be either Fusion Summoned, or Special Summoned (from your Extra Deck) during the turn a Spell Card or effect is activated, by banishing 1 Level 6 or higher DARK Spellcaster monster you control as material. You can only Special Summon \"Dark Magician of Destruction\" once per turn this way, no matter which method you use. This card's name becomes \"Dark Magician\" while on the field or in the GY. If this card is Special Summoned: You can add 1 \"Dark Magician\" or 1 card that mentions it from your Deck to your hand.", "type": "Fusion Monster", "level": 8, "attribute": "DARK", "race": "Spellcaster", "atk": 2800, "def": 2600}, "Timaeus the United Magical Dragon": {"id": 85899505, "desc": "\"Dark Magician\" or \"Dark Magician Girl\" + 1 Dragon or Spellcaster monster\nAfter this card is Special Summoned, it is unaffected by other cards' effects until the end of your next turn. You can only use each of the following effects of \"Timaeus the United Magical Dragon\" once per turn. If this card battles, during damage calculation: You can make this card gain 100 ATK for each Spell in the GYs and banishment. During your opponent's turn (Quick Effect): You can target 1 Spell/Trap on the field; destroy it.", "type": "Fusion Monster", "level": 10, "attribute": "LIGHT", "race": "Dragon", "atk": 2800, "def": 1800}, "Quintet Magician": {"id": 84433295, "desc": "5 Spellcaster monsters\nMust be Fusion Summoned. If this card is Fusion Summoned using 5 Spellcaster monsters with different names: You can destroy all cards your opponent controls. This face-up card on the field cannot be Tributed, nor used as Fusion Material, also it cannot be destroyed by card effects.", "type": "Fusion Monster", "level": 12, "attribute": "DARK", "race": "Spellcaster", "atk": 4500, "def": 4500}, "Miasma Necromancer": {"id": 69176851, "desc": "2 monsters, including a DARK Spellcaster monster\nIf this card is Link Summoned: You can add 1 Level 5 or higher DARK Spellcaster monster from your GY to your hand, but you cannot activate cards, or the effects of cards, with its name for the rest of this turn. You can send 1 Spell/Trap from your hand or field to the GY; immediately after this effect resolves, Normal Summon 1 Spellcaster monster. You can only use each effect of \"Miasma Necromancer\" once per turn.", "type": "Link Monster", "level": 2, "attribute": "DARK", "race": "Spellcaster", "atk": 1800, "def": 40}};
+const IMG = id=>"https://images.ygoprodeck.com/images/cards/"+id+".jpg", IMG_S = id=>"https://images.ygoprodeck.com/images/cards_small/"+id+".jpg";
+
+const DECK = {
+  "Monsters":[[2,"Dark Magician"],[3,"Magicians' Souls"],[1,"Magikuriboh"],[3,"Magician's Rod"],[1,"Dark Magician Girl"],[3,"Apprentice Illusion Magician"],[3,"Timaeus the United Dragon"],[3,"Illusion of Chaos"]],
+  "Spells":[[1,"Thousand Knives"],[1,"Dark Magic Attack"],[2,"Preparation of Rites"],[1,"The Eye of Timaeus"],[1,"Magicalized Fusion"],[1,"Magician's Salvation"],[1,"Chaos Form"],[3,"Dark Magical Circle"],[2,"Soul Servant"],[2,"Secrets of Dark Magic"],[2,"The Gaze of Timaeus"]],
+  "Traps":[[3,"Dark Magic Talisman"],[1,"Eternal Soul"]],
+  "Extra Deck":[[1,"Dark Magician the Dragon Knight"],[1,"The Dark Magicians"],[1,"Master of Chaos"],[1,"Dark Magician the Knight of Dragon Magic"],[1,"Dark Magician of Destruction"],[1,"Timaeus the United Magical Dragon"],[1,"Quintet Magician"],[1,"Miasma Necromancer"]]
+};
+
+const ROLE = {
+  "Dark Magician":"Your ace. Almost every card in the deck needs it on the field, in your hand or in the GY. Run 2 and use searchers to find it.",
+  "Magicians' Souls":"From your hand, it sends a Level 6 or higher Spellcaster from your Deck to the GY, then either Special Summons itself or revives Dark Magician or Dark Magician Girl.",
+  "Magikuriboh":"A going-second card. After you take damage, it brings out Dark Magician or Dark Magician Girl from your Deck or GY.",
+  "Magician's Rod":"Your main searcher. Normal Summon it to add any Spell/Trap that mentions Dark Magician.",
+  "Dark Magician Girl":"Gains 300 ATK for each Dark Magician in the GYs. Fusion material for The Dark Magicians and Timaeus the United Magical Dragon.",
+  "Apprentice Illusion Magician":"Special Summons itself by discarding a card, then adds Dark Magician. As a Level 6 DARK Spellcaster it can become Dark Magician of Destruction.",
+  "Timaeus the United Dragon":"Summons itself by sending a Spellcaster or a Dark Magician Spell/Trap to the GY, then Fusion Summons using your hand and field.",
+  "Illusion of Chaos":"Reveal it to add Dark Magician (or a monster that mentions it), then put a card back on top. On the field it negates a monster effect and brings Dark Magician back.",
+  "Thousand Knives":"While you control Dark Magician, destroys 1 monster your opponent controls. Best going second.",
+  "Dark Magic Attack":"While you control Dark Magician, destroys every Spell and Trap your opponent controls. Best going second.",
+  "Preparation of Rites":"Adds Illusion of Chaos from your Deck, then can bring Chaos Form back from your GY.",
+  "The Eye of Timaeus":"Turns a Dark Magician monster on your field into a Fusion that lists it as material, all by itself.",
+  "Magicalized Fusion":"Fusion Summons a Spellcaster Fusion by banishing materials from your field or GY. Good for a second Fusion late in the turn.",
+  "Magician's Salvation":"Field Spell. When activated it Sets Eternal Soul from your Deck. Later, summoning Dark Magician or Dark Magician Girl revives the other one.",
+  "Chaos Form":"Ritual Summons Illusion of Chaos. It can Tribute from hand or field, or banish Dark Magician from your GY, for a total of exactly Level 7.",
+  "Dark Magical Circle":"When activated, digs the top 3 cards for Dark Magician or a card that mentions it. Every time Dark Magician is summoned, it banishes a card your opponent controls.",
+  "Soul Servant":"Puts a Dark Magician card on top of your Deck. Later, banish it from the GY to draw cards.",
+  "Secrets of Dark Magic":"Quick-Play Spell that can Fusion Summon or Ritual Summon, as long as Dark Magician or Dark Magician Girl is one of the materials.",
+  "The Gaze of Timaeus":"Quick-Play Fusion that shuffles a Dark Magician or Dark Magician Girl from your field or GY into the Deck. The Fusion is banished at the end of the next turn.",
+  "Dark Magic Talisman":"Negates a monster effect your opponent chains to a Dark Magician card. Can be activated the turn it’s Set if you reveal a Spellcaster.",
+  "Eternal Soul":"Continuous Trap. Once per turn it revives Dark Magician from your hand or GY, or adds Thousand Knives or Dark Magic Attack. Your Dark Magician is unaffected by your opponent’s card effects.",
+  "Dark Magician the Dragon Knight":"Dark Magician + a Dragon. Counts as Dark Magician, and your opponent can’t target or destroy your Spells and Traps.",
+  "The Dark Magicians":"Dark Magician or Dark Magician Girl + a Spellcaster. Draws a card each time a Spell or Trap is activated.",
+  "Master of Chaos":"Dark Magician + a Chaos Ritual monster. When Fusion Summoned, it revives a LIGHT or DARK monster from your GY.",
+  "Dark Magician the Knight of Dragon Magic":"Dark Magician + a Level 7 or higher Dragon or Warrior. Piercing damage and burn when your monsters win battles.",
+  "Dark Magician of Destruction":"Summon it by banishing a Level 6 or higher DARK Spellcaster you control, if a Spell was activated this turn. It counts as Dark Magician and searches a card.",
+  "Timaeus the United Magical Dragon":"Dark Magician or Dark Magician Girl + a Dragon or Spellcaster. Unaffected by other effects after it’s Special Summoned, and destroys a Spell/Trap on your opponent’s turn.",
+  "Quintet Magician":"5 Spellcasters. If they all have different names, it destroys every card your opponent controls.",
+  "Miasma Necromancer":"Link-2. Adds back a Level 5 or higher DARK Spellcaster from your GY, and can give you an extra Normal Summon of a Spellcaster."
+};
+
+// ---- The fixed lines for Watch and Practice ----
+const FS = "Fusion Summon", RS = "Ritual Summon";
+const LINES = [
+ { key:"soul", name:"Eternal Soul control",
+   blurb:"Rod, Illusion of Chaos, Dark Magical Circle, Talisman and Timaeus. Ends on Dragon Knight guarding Eternal Soul and Circle.",
+   inst:{rod:"Magician's Rod",ioc:"Illusion of Chaos",dmc:"Dark Magical Circle",tal:"Dark Magic Talisman",tim:"Timaeus the United Dragon",
+     dm:"Dark Magician",sal:"Magician's Salvation",es:"Eternal Soul",dk:"Dark Magician the Dragon Knight"},
+   init:{rod:"hand",ioc:"hand",dmc:"hand",tal:"hand",tim:"hand",dm:"deck",sal:"deck",es:"deck",dk:"extra"},
+   steps:[
+ {cap:"Your opening hand. You’re going first. The plan: get Dark Magical Circle and Eternal Soul onto the field, then Fusion Summon Dark Magician the Dragon Knight to protect them.", ops:[]},
+ {q:"Reveal Illusion of Chaos to add Dark Magician", w:["Activate Dark Magical Circle first","Special Summon Timaeus the United Dragon first"], hint:"Start with Illusion of Chaos. It gets you Dark Magician and lets you choose what Dark Magical Circle will find.",
+  cap:"Reveal Illusion of Chaos in your hand. It adds Dark Magician from your Deck, then you put 1 card from your hand back on top of your Deck.", ops:[["dm","hand"]], act:["ioc"]},
+ {q:"Put Dark Magic Talisman on top of your Deck", w:["Put Dark Magician on top of your Deck","Put Timaeus the United Dragon on top of your Deck"], hint:"Dark Magical Circle can take a Spell or Trap that mentions Dark Magician from the top 3 cards. Talisman qualifies, so you get it straight back.",
+  cap:"Put Dark Magic Talisman on top of your Deck. Dark Magical Circle is about to pick it right back up.", ops:[["tal","deck"]]},
+ {q:"Activate Dark Magical Circle", w:["Set Dark Magical Circle face-down","Special Summon Timaeus by sending Magician's Rod from your hand"], hint:"Talisman is sitting on top of your Deck right now, so Circle is guaranteed to find something.",
+  cap:"Activate Dark Magical Circle. Look at the top 3 cards of your Deck and add Dark Magic Talisman, since it mentions Dark Magician.", ops:[["dmc","s2"],["tal","hand"]], act:["dmc"]},
+ {q:"Normal Summon Magician's Rod", w:["Normal Summon Illusion of Chaos","Normal Summon Timaeus the United Dragon"], hint:"Rod’s search only works when it’s Normal Summoned. Illusion of Chaos is a Ritual monster, and Timaeus is Level 8.",
+  cap:"Normal Summon Magician's Rod.", ops:[["rod","m2"]], act:["rod"]},
+ {q:"Use Magician's Rod to add Magician's Salvation", w:["Use Magician's Rod to add Secrets of Dark Magic","Use Magician's Rod to add Thousand Knives"], hint:"Magician's Salvation Sets Eternal Soul straight from your Deck, so one search gets you two cards.",
+  cap:"Magician's Rod adds Magician's Salvation from your Deck. It mentions Dark Magician, so Rod can find it.", ops:[["sal","hand"]], act:["rod"]},
+ {q:"Activate Magician's Salvation and Set Eternal Soul", w:["Set Magician's Salvation face-down","Keep Magician's Salvation for next turn"], hint:"Eternal Soul is only Set when Salvation is activated, so play it now.",
+  cap:"Activate Magician's Salvation in your Field Zone. When it’s activated, you can Set Eternal Soul directly from your Deck.", ops:[["sal","field"],["es","s3","down"]], act:["sal"]},
+ {q:"Special Summon Timaeus by sending Magician's Rod to the GY", w:["Special Summon Timaeus by sending Illusion of Chaos to the GY","Normal Summon Timaeus the United Dragon"], hint:"Rod has done its job. Keep Illusion of Chaos in your hand for next turn, and your Normal Summon is already used.",
+  cap:"Special Summon Timaeus the United Dragon from your hand by sending Magician's Rod from the field to the GY.", ops:[["rod","gy"],["tim","m3"]], act:["tim"]},
+ {q:"Use Timaeus to Fusion Summon Dark Magician the Dragon Knight", w:["Use Timaeus to Fusion Summon The Dark Magicians","Use Timaeus to Fusion Summon Dark Magician the Knight of Dragon Magic"], hint:"Dragon Knight stops your opponent from targeting or destroying your Spells and Traps. That protects Circle, Salvation and Eternal Soul. The Dark Magicians needs a second Spellcaster, and Timaeus is a Dragon.",
+  cap:"Timaeus Fusion Summons Dark Magician the Dragon Knight, using Dark Magician from your hand and Timaeus from the field. Dragon Knight counts as Dark Magician on the field.", ops:[["dm","gy"],["tim","gy"],["dk","m2"]], flash:"m2", banner:FS},
+ {q:"Set Dark Magic Talisman", w:["Keep Dark Magic Talisman in your hand","Discard Dark Magic Talisman"], hint:"Talisman has to be on the field to protect your plays.",
+  cap:"Set Dark Magic Talisman. Because Illusion of Chaos is a Spellcaster in your hand, you could even activate Talisman the turn it’s Set.", ops:[["tal","s1","down"]]},
+ {q:"End your turn", w:["Attack with Dark Magician the Dragon Knight","Use Dark Magical Circle’s banish now"], hint:"The player going first can’t attack, and your opponent has no cards yet for Circle to banish.",
+  cap:"End board: Dragon Knight (3000 ATK) keeps your Spells and Traps safe. On your opponent’s turn, Eternal Soul revives Dark Magician from your GY, and that triggers Dark Magical Circle to banish one of their cards. Talisman guards your Dark Magician cards, and Illusion of Chaos waits in your hand.", ops:[]}
+ ]},
+ { key:"chaos", name:"Chaos ritual",
+   blurb:"Illusion of Chaos, Chaos Form and Magicians’ Souls. Ends on Illusion of Chaos ready to negate, next to Dark Magician Girl.",
+   inst:{ioc:"Illusion of Chaos",cf:"Chaos Form",souls:"Magicians' Souls",tal:"Dark Magic Talisman",tk:"Thousand Knives",dm:"Dark Magician",dmg:"Dark Magician Girl"},
+   init:{ioc:"hand",cf:"hand",souls:"hand",tal:"hand",tk:"hand",dm:"deck",dmg:"deck"},
+   steps:[
+ {cap:"Your opening hand. You’re going first. This hand Ritual Summons Illusion of Chaos with Chaos Form, so its negate is waiting on your opponent’s turn.", ops:[]},
+ {q:"Reveal Illusion of Chaos to add Dark Magician", w:["Activate Chaos Form right away","Normal Summon Magicians' Souls"], hint:"Chaos Form needs Levels that add up to exactly 7. Dark Magician is Level 7, so get it first.",
+  cap:"Reveal Illusion of Chaos to add Dark Magician from your Deck. Then put 1 card from your hand on top of your Deck.", ops:[["dm","hand"]], act:["ioc"]},
+ {q:"Put Thousand Knives on top of your Deck", w:["Put Chaos Form on top of your Deck","Put Dark Magician on top of your Deck"], hint:"Thousand Knives needs an opponent’s monster to destroy, so it does nothing on turn 1. You’ll draw it again next turn.",
+  cap:"Put Thousand Knives back on top of your Deck. It’s no use on turn 1, and you’ll draw it next turn when it can destroy a monster.", ops:[["tk","deck"]]},
+ {q:"Activate Chaos Form", w:["Set Chaos Form face-down","Use Magicians' Souls first and send Dark Magician to the GY"], hint:"You already hold Illusion of Chaos and a Level 7 Tribute. Keep the second Dark Magician in your Deck.",
+  cap:"Activate Chaos Form.", ops:[["cf","s2"]], act:["cf"]},
+ {q:"Tribute Dark Magician from your hand", w:["Tribute Magicians' Souls from your hand","Banish Dark Magician from your GY"], hint:"Dark Magician is Level 7, exactly Illusion of Chaos’s Level. Tributing it from your hand puts it in the GY, where Illusion’s negate can revive it. There’s no Dark Magician in your GY yet.",
+  cap:"Ritual Summon Illusion of Chaos by Tributing Dark Magician from your hand. Level 7 matches Level 7 exactly. Chaos Form goes to the GY.", ops:[["dm","gy"],["ioc","m2"],["cf","gy"]], flash:"m2", banner:RS},
+ {q:"Use Magicians' Souls: send Dark Magician Girl from your Deck to the GY", w:["Use Magicians' Souls: send Apprentice Illusion Magician from your Deck to the GY","Normal Summon Magicians' Souls"], hint:"Souls sends a Level 6 or higher Spellcaster from your Deck. Dark Magician Girl is one it can bring right back.",
+  cap:"Use Magicians’ Souls from your hand. First send Dark Magician Girl from your Deck to the GY.", ops:[["dmg","gy"]], act:["souls"]},
+ {q:"Send Souls to the GY and Special Summon Dark Magician Girl", w:["Special Summon Magicians' Souls itself","Send Souls to the GY and Special Summon Dark Magician"], hint:"Keep Dark Magician in the GY, since Illusion of Chaos needs it there to negate. Dark Magician Girl gains 300 ATK for each Dark Magician in the GYs.",
+  cap:"Choose Souls’ second option: send it to the GY, then Special Summon Dark Magician Girl from your GY. With Dark Magician in your GY, she has 2300 ATK.", ops:[["souls","gy"],["dmg","m3"]], act:["dmg"]},
+ {q:"Set Dark Magic Talisman", w:["Keep Dark Magic Talisman in your hand","Discard Dark Magic Talisman"], hint:"Talisman has to be on the field to protect your plays.",
+  cap:"Set Dark Magic Talisman.", ops:[["tal","s1","down"]]},
+ {q:"End your turn", w:["Attack with Dark Magician Girl","Ritual Summon again"], hint:"The player going first can’t attack, and Chaos Form is already used.",
+  cap:"End board: Illusion of Chaos and Dark Magician Girl (2300 ATK). When your opponent activates a monster effect, return Illusion to your hand to Special Summon Dark Magician from your GY and negate it. Talisman guards your Dark Magician cards, and next turn you draw Thousand Knives.", ops:[]}
+ ]},
+ { key:"dmod", name:"Destruction + Gaze",
+   blurb:"Rod, Apprentice, Soul Servant, Talisman and Thousand Knives. Turns Apprentice into Dark Magician of Destruction and Sets The Gaze of Timaeus.",
+   inst:{rod:"Magician's Rod",aim:"Apprentice Illusion Magician",ss:"Soul Servant",tal:"Dark Magic Talisman",tk:"Thousand Knives",
+     sal:"Magician's Salvation",es:"Eternal Soul",dm:"Dark Magician",dmod:"Dark Magician of Destruction",gaze:"The Gaze of Timaeus",dmc:"Dark Magical Circle"},
+   init:{rod:"hand",aim:"hand",ss:"hand",tal:"hand",tk:"hand",sal:"deck",es:"deck",dm:"deck",dmod:"extra",gaze:"deck",dmc:"deck"},
+   steps:[
+ {cap:"Your opening hand. You’re going first. The plan: activate a Spell, then turn Apprentice Illusion Magician into Dark Magician of Destruction and use its search.", ops:[]},
+ {q:"Normal Summon Magician's Rod", w:["Normal Summon Apprentice Illusion Magician","Set Magician's Rod face-down"], hint:"Apprentice is Level 6, so a Normal Summon would need a Tribute. It can Special Summon itself instead. Rod only searches when it’s Normal Summoned face-up.",
+  cap:"Normal Summon Magician's Rod.", ops:[["rod","m2"]], act:["rod"]},
+ {q:"Use Magician's Rod to add Magician's Salvation", w:["Use Magician's Rod to add Thousand Knives","Use Magician's Rod to add Dark Magic Attack"], hint:"Salvation is a Spell that also Sets Eternal Soul, and activating a Spell is what lets Dark Magician of Destruction come out.",
+  cap:"Magician's Rod adds Magician's Salvation from your Deck.", ops:[["sal","hand"]], act:["rod"]},
+ {q:"Activate Magician's Salvation and Set Eternal Soul", w:["Set Magician's Salvation face-down","Keep Magician's Salvation for next turn"], hint:"Activating it now does two jobs: you Set Eternal Soul, and you’ve activated a Spell this turn.",
+  cap:"Activate Magician's Salvation and Set Eternal Soul from your Deck. You’ve now activated a Spell this turn.", ops:[["sal","field"],["es","s3","down"]], act:["sal"]},
+ {q:"Special Summon Apprentice Illusion Magician by discarding Thousand Knives", w:["Special Summon Apprentice by discarding Soul Servant","Special Summon Apprentice by discarding Dark Magic Talisman"], hint:"Thousand Knives does nothing on turn 1. Soul Servant and Talisman both have jobs this turn.",
+  cap:"Special Summon Apprentice Illusion Magician from your hand by discarding Thousand Knives.", ops:[["tk","gy"],["aim","m3"]], act:["aim"]},
+ {q:"Use Apprentice to add Dark Magician", w:["Use Apprentice to add Dark Magician Girl","Use Apprentice to add Magician's Rod"], hint:"Apprentice’s summon effect can only add Dark Magician.",
+  cap:"Apprentice Illusion Magician was Special Summoned, so it adds Dark Magician from your Deck.", ops:[["dm","hand"]], act:["aim"]},
+ {q:"Banish Apprentice to Special Summon Dark Magician of Destruction", w:["Banish Magician's Rod to Special Summon Dark Magician of Destruction","Tribute Apprentice to Normal Summon Dark Magician"], hint:"Destruction needs a Level 6 or higher DARK Spellcaster you control, and a Spell activated this turn. Rod is only Level 3, and your Normal Summon is used.",
+  cap:"You activated a Spell this turn, so banish Apprentice Illusion Magician (a Level 6 DARK Spellcaster) to Special Summon Dark Magician of Destruction from your Extra Deck. It counts as Dark Magician.", ops:[["aim","ban"],["dmod","m3"]], flash:"m3", banner:"Special Summon"},
+ {q:"Use Destruction to add The Gaze of Timaeus", w:["Use Destruction to add Dark Magic Attack","Skip Destruction’s search"], hint:"Gaze can turn Destruction into another Fusion during your opponent’s turn, which makes it a surprise play.",
+  cap:"Dark Magician of Destruction was Special Summoned, so it adds The Gaze of Timaeus from your Deck.", ops:[["gaze","hand"]], act:["dmod"]},
+ {q:"Activate Soul Servant: put Dark Magical Circle on top of your Deck", w:["Activate Soul Servant: put Thousand Knives on top of your Deck","Set Soul Servant for later"], hint:"You’re about to draw the card you put on top, so pick the one you want most. Circle sets up banishes for the rest of the duel.",
+  cap:"Activate Soul Servant and put Dark Magical Circle from your Deck on top of your Deck.", ops:[["ss","gy"]], act:["ss"]},
+ {q:"Banish Soul Servant from your GY to draw", w:["Wait until next turn to banish Soul Servant","Activate Dark Magic Talisman"], hint:"Soul Servant draws 1 card for each different Dark Magician or Dark Magician Girl name on the field and in the GYs. Destruction counts as Dark Magician, so that’s 1 card: the Circle you just put on top.",
+  cap:"Banish Soul Servant from your GY. Destruction counts as Dark Magician, so you draw 1 card: Dark Magical Circle.", ops:[["ss","ban"],["dmc","hand"]], act:[]},
+ {q:"Activate Dark Magical Circle", w:["Keep Dark Magical Circle in your hand","Set Dark Magical Circle face-down"], hint:"Circle has to be face-up on the field for its banish to work when Dark Magician is summoned.",
+  cap:"Activate Dark Magical Circle. Look at the top 3 cards and take one that mentions Dark Magician if you see one.", ops:[["dmc","s2"]], act:["dmc"]},
+ {q:"Set The Gaze of Timaeus and Dark Magic Talisman", w:["Activate The Gaze of Timaeus now","Keep Gaze and Talisman in your hand"], hint:"Gaze is a Quick-Play Spell. Set it now so you can use it on your opponent’s turn.",
+  cap:"Set The Gaze of Timaeus and Dark Magic Talisman.", ops:[["gaze","s1","down"],["tal","s4","down"]]},
+ {q:"End your turn", w:["Attack with Dark Magician of Destruction","Activate Magician's Salvation again"], hint:"The player going first can’t attack, and Salvation can only be activated once per turn.",
+  cap:"End board: Dark Magician of Destruction, Rod, Circle and Salvation, with Eternal Soul, Gaze and Talisman Set. On your opponent’s turn, Eternal Soul Special Summons Dark Magician from your hand, and Circle banishes a card. Gaze can turn Destruction into Timaeus the United Magical Dragon or Master of Chaos at instant speed.", ops:[]}
+ ]}
+];
+const INST = {...LINES[0].inst}, INIT = {...LINES[0].init};
+const SS = "Synchro Summon";
+const STEPS = LINES[0].steps.slice();
+
+// ---- Popular ways to play the deck (from Master Duel and TCG deck lists, 2025–2026) ----
+const STYLES = [
+ { name:"Eternal Soul control", line:"soul",
+   what:"The classic Dark Magician plan. You go first, Set Eternal Soul and keep Dark Magical Circle face-up, then keep reviving Dark Magician on your opponent’s turn.",
+   how:"Magician's Rod searches Magician's Salvation, which Sets Eternal Soul from your Deck. Each time Eternal Soul brings Dark Magician back, Dark Magical Circle banishes one of your opponent’s cards. Dark Magician the Dragon Knight stops them from targeting or destroying your Spells and Traps.",
+   cards:["Magician's Rod","Magician's Salvation","Eternal Soul","Dark Magical Circle","Dark Magician the Dragon Knight"],
+   watch:"If Eternal Soul leaves the field while face-up, every monster you control is destroyed. Protect it with Dragon Knight." },
+ { name:"Chaos ritual", line:"chaos",
+   what:"Build around Illusion of Chaos. It searches from your hand, and once it’s on the field it negates a monster effect and brings Dark Magician back.",
+   how:"Preparation of Rites adds Illusion of Chaos and gets Chaos Form back from your GY. Chaos Form or Secrets of Dark Magic Ritual Summons it. Keep a Dark Magician in your GY so its negate always has something to revive. Master of Chaos fuses Dark Magician with Illusion for a bigger finish.",
+   cards:["Illusion of Chaos","Chaos Form","Preparation of Rites","Secrets of Dark Magic","Master of Chaos"],
+   watch:"Chaos Form needs Levels that add up to exactly 7. Dark Magician on its own is perfect." },
+ { name:"Destruction + Gaze", line:"dmod",
+   what:"The newest engine, from the 2025 support. Any Level 6 or higher DARK Spellcaster becomes Dark Magician of Destruction once you’ve activated a Spell.",
+   how:"Banish Apprentice Illusion Magician, Dark Magician Girl, Dark Magician or Illusion of Chaos to Special Summon Destruction. It counts as Dark Magician and searches The Gaze of Timaeus. Gaze is a Quick-Play Fusion: on your opponent’s turn it shuffles Destruction away to Fusion Summon Timaeus the United Magical Dragon or Master of Chaos.",
+   cards:["Dark Magician of Destruction","The Gaze of Timaeus","Apprentice Illusion Magician","Timaeus the United Magical Dragon","Master of Chaos"],
+   watch:"Monsters made with Gaze are banished at the end of the next turn, so use them while they last." },
+ { name:"Timaeus Fusion toolbox", line:null,
+   what:"Use Timaeus and your Fusion Spells to pick the right Fusion for the moment, from Dragon Knight protection to a Quintet Magician board wipe.",
+   how:"Timaeus the United Dragon summons itself and then fuses with cards from your hand or field. The Eye of Timaeus turns one Dark Magician monster into a Fusion by itself, and Magicalized Fusion banishes materials from your GY for a late extra Fusion. Five Spellcasters with different names make Quintet Magician, which destroys every card your opponent controls.",
+   cards:["Timaeus the United Dragon","The Eye of Timaeus","Secrets of Dark Magic","Magicalized Fusion","Quintet Magician"],
+   watch:"Timaeus’s summon and its Fusion are separate once-per-turn effects, so you can use both in the same turn." },
+ { name:"Going second", line:null,
+   what:"When your opponent sets up first, Dark Magician has cards made to break boards.",
+   how:"Once Dark Magician is on the field, Dark Magic Attack destroys all their Spells and Traps and Thousand Knives destroys a monster. Magikuriboh brings Dark Magician or Dark Magician Girl out after you take damage. Timaeus the United Magical Dragon is unaffected by other cards right after it’s summoned, so it’s hard for them to stop.",
+   cards:["Dark Magic Attack","Thousand Knives","Magikuriboh","Eternal Soul","Timaeus the United Magical Dragon"],
+   watch:"Eternal Soul can search Dark Magic Attack or Thousand Knives instead of reviving, which is often better going second." }
+];
+const STYLE_NOTE = "Top-ranked Dark Magician lists in 2026 also add hand traps and outside cards like Red-Eyes Dark Dragoon, Shining Sarcophagus and the Primite engine. Your deck doesn’t run those, so this trainer sticks to the 40 cards you have.";
+
+let DB = {};
+async function loadDB(){
+  // Card text, Levels and types are built into the app, so nothing depends on the card database website.
+  for(const n in BAKED){ const b=BAKED[n]; DB[n]={img:IMG(b.id), small:IMG_S(b.id), desc:b.desc, type:b.type, level:b.level, attribute:b.attribute, race:b.race}; }
+}
+// Download every picture at the same time, then show them all together.
+function preloadImages(){
+  const urls=[]; for(const n in DB){ urls.push(DB[n].img, DB[n].small); }
+  const one=u=>new Promise(ok=>{ const im=new Image(); const t=setTimeout(()=>ok(false),8000); im.onload=()=>{ clearTimeout(t); ok(true); }; im.onerror=()=>{ clearTimeout(t); ok(false); }; im.src=u; });
+  return Promise.all(urls.map(one));
+}
+
+const stage = document.getElementById("stage");
+let G = {};
+const cardEls = {};
+const Z = {
+  odeck:[0,0], os4:[0,1], os3:[0,2], os2:[0,3], os1:[0,4], os0:[0,5], oextra:[0,6],
+  ogy:[1,0], om4:[1,1], om3:[1,2], om2:[1,3], om1:[1,4], om0:[1,5], ofield:[1,6],
+  emzL:[2,2], emzR:[2,4],
+  field:[3,0], m0:[3,1], m1:[3,2], m2:[3,3], m3:[3,4], m4:[3,5], gy:[3,6],
+  extra:[4,0], s0:[4,1], s1:[4,2], s2:[4,3], s3:[4,4], s4:[4,5], deck:[4,6]
+};
+const LABEL = {field:"Field", gy:"GY", extra:"Extra", deck:"Deck", ofield:"Field", ogy:"GY", oextra:"Extra", odeck:"Deck"};
+
+function layout(){
+  const W = Math.min(stage.parentElement.clientWidth, 600);
+  const cell = W/7, cw = cell*0.82, ch = cw*86/59, rowH = ch*1.1, handH = rowH*1.25;
+  G = {W, cell, cw, ch, rowH, boardH: rowH*5, handH};
+  stage.style.width = W+"px"; stage.style.height = (G.boardH + 8 + handH)+"px";
+  stage.querySelectorAll(".board,.handbar,.pile").forEach(e=>e.remove());
+  const board = document.createElement("div"); board.className="board"; board.style.height=G.boardH+"px";
+  const cx = W/2, cy = rowH*2.5;
+  [[rowH*1.9,""],[rowH*1.35," two"]].forEach(([r,c])=>{const s=document.createElement("div");s.className="sigil"+c;
+    s.style.cssText=`width:${r*2}px;height:${r*2}px;left:${cx-r}px;top:${cy-r}px`;board.appendChild(s)});
+  const ml=document.createElement("div");ml.className="midline";ml.style.top=(rowH*2.5)+"px";board.appendChild(ml);
+  for(const [k,[r,c]] of Object.entries(Z)){
+    const z=document.createElement("div"); z.className="zone"+(k.startsWith("o")?" opp":"")+(k.startsWith("emz")?" emz":"");
+    const x=(c+.5)*cell, y=(r+.5)*rowH, w = k.startsWith("emz")? cw*1.15 : cw*1.06, h = k.startsWith("emz")? ch*1.02 : ch*1.04;
+    z.style.cssText=`width:${w}px;height:${h}px;left:${x-w/2}px;top:${y-h/2}px`;
+    if(LABEL[k]){const l=document.createElement("div");l.className="lab";l.textContent=LABEL[k];z.appendChild(l);}
+    board.appendChild(z);
+  }
+  stage.appendChild(board);
+  const hb=document.createElement("div");hb.className="handbar";hb.style.top=(G.boardH+8)+"px";hb.style.height=handH+"px";stage.appendChild(hb);
+  [["deck",""],["extra",""],["odeck",35],["oextra",15]].forEach(([k,n])=>{
+    const [x,y]=center(k); const p=document.createElement("div"); p.className="pile";
+    p.style.cssText=`width:${cw}px;height:${ch}px;left:${x-cw/2}px;top:${y-ch/2}px;z-index:1`;
+    p.innerHTML=`<span class="n">${n}</span>`; p.dataset.k=k; stage.appendChild(p);
+  });
+}
+function center(k){ const [r,c]=Z[k]; return [(c+.5)*G.cell, (r+.5)*G.rowH]; }
+
+function makeCards(){
+  for(const id in INST){
+    const el=document.createElement("div"); el.className="card"; el.dataset.id=id;
+    el.innerHTML=`<div class="fb">${INST[id]}</div><div class="back"></div>`;
+    el.addEventListener("click",()=>{ if(el.style.opacity!=="0") openCard(INST[id]); });
+    stage.appendChild(el); cardEls[id]=el;
+  }
+}
+function applyImages(){
+  for(const id in INST){ const d=DB[INST[id]]; const el=cardEls[id];
+    if(d && !el.querySelector("img")){ const im=new Image(); im.alt=INST[id]; im.src=d.img; im.onload=()=>el.querySelector(".fb").style.display="none"; el.prepend(im); } }
+}
+
+function stateAt(i){
+  const s={}; let t=0; for(const id in INIT) s[id]={z:INIT[id], f:"up", t:t++};
+  for(let k=1;k<=i;k++) for(const [id,z,f] of STEPS[k].ops) s[id]={z, f:f||"up", t:t++};
+  return s;
+}
+
+let cur=0;
+function render(i, animate=true){
+  const s=stateAt(i), step=STEPS[i];
+  const hand=Object.keys(s).filter(id=>s[id].z==="hand").sort((a,b)=>s[a].t-s[b].t);
+  const gy=Object.keys(s).filter(id=>s[id].z==="gy").sort((a,b)=>s[a].t-s[b].t);
+  const hs = 1.2, hw=G.cw*hs, n=hand.length;
+  const gap = n>1 ? Math.min(hw*1.08, (G.W-hw-16)/(n-1)) : 0;
+  const hx0 = G.W/2 - gap*(n-1)/2, hy = G.boardH + 8 + G.handH/2;
+  for(const id in s){
+    const el=cardEls[id], c=s[id]; let x,y,sc=1,op=1,zi=10;
+    if(!animate) el.style.transition="none";
+    el.style.width=G.cw+"px"; el.style.height=G.ch+"px";
+    if(c.z==="hand"){ const k=hand.indexOf(id); x=hx0+k*gap; y=hy; sc=hs; zi=50+k; }
+    else if(c.z==="gy"){ const k=gy.indexOf(id); [x,y]=center("gy"); y-=k*1.5; zi=20+k; }
+    else if(c.z==="deck"||c.z==="extra"||c.z==="ban"){ [x,y]=center(c.z==="ban"?"gy":c.z); op=0; sc=.92; zi=2; }
+    else { [x,y]=center(c.z); zi=30; }
+    el.style.transform=`translate(${x-G.cw/2}px,${y-G.ch/2}px) scale(${sc})`;
+    el.style.opacity=op; el.style.zIndex=zi; el.style.pointerEvents=op?"auto":"none";
+    el.classList.toggle("down", c.f==="down");
+    el.classList.toggle("act", !!(step.act && step.act.includes(id)));
+    if(!animate){ el.offsetHeight; el.style.transition=""; }
+  }
+  updatePileCounts();
+  document.getElementById("stepk").textContent = i===0 ? "Opening hand" : step.opp ? `Opponent’s turn · Step ${i} of ${STEPS.length-1}` : `${(step.turn||1)>1?`Turn ${step.turn} · `:""}Step ${i} of ${STEPS.length-1}`;
+  document.getElementById("cap").textContent = step.cap;
+  if(animate && step.flash) setTimeout(()=>fx(step.flash, step.banner), 500);
+}
+function fx(zone, text){
+  const [x,y]=center(zone), r=G.cw*1.3;
+  const f=document.createElement("div"); f.className="flash";
+  f.style.cssText=`width:${r*2}px;height:${r*2}px;left:${x-r}px;top:${y-r}px`;
+  stage.appendChild(f); setTimeout(()=>f.remove(),1100);
+  if(text){ const b=document.createElement("div"); b.className="banner"; b.textContent=text;
+    b.style.top=(G.rowH*2.5 - 14)+"px"; b.style.fontSize=Math.max(18,G.W/16)+"px";
+    stage.appendChild(b); setTimeout(()=>b.remove(),1500); }
+}
+
+let timer=null;
+const bPlay=document.getElementById("bPlay");
+
+function expand(list){ const o=[]; list.forEach(([q,n])=>{for(let i=0;i<q;i++)o.push(n)}); return o; }
+function pileContents(k, i){
+  const st=stateAt(i);
+  if(k==="gy") return Object.keys(st).filter(id=>st[id].z==="gy").sort((a,b)=>st[b].t-st[a].t).map(id=>INST[id]);
+  const src = k==="extra" ? expand(DECK["Extra Deck"]) : expand([...DECK.Monsters,...DECK.Spells,...DECK.Traps]);
+  for(const id in st){ const home = k==="extra" ? INIT[id]==="extra" : (INIT[id]==="deck"||INIT[id]==="hand");
+    if(home && st[id].z!==k){ const j=src.indexOf(INST[id]); if(j>=0) src.splice(j,1); } }
+  return src;
+}
+function updatePileCounts(){
+  if(mode==="play"){ const set=(k,n)=>{ const el=stage.querySelector(`.pile[data-k="${k}"] .n`); if(el) el.textContent=n; };
+    set("deck",P.deck.length); set("extra",Object.values(P.cards).filter(c=>c.where==="extra").length); return; }
+  ["deck","extra"].forEach(k=>{ const el=stage.querySelector(`.pile[data-k="${k}"] .n`); if(el) el.textContent=pileContents(k,cur).length; });
+}
+const PNAME={gy:"Graveyard",deck:"Deck",extra:"Extra Deck"};
+function openPile(k){
+  if(mode==="play") return openPlayPile(k);
+  const list=pileContents(k,cur); const counts={}; const order=[];
+  list.forEach(n=>{ if(!counts[n]){counts[n]=0;order.push(n);} counts[n]++; });
+  if(k!=="gy") order.sort();
+  const box=document.getElementById("mbox"); box.className="pview";
+  box.innerHTML=`<h3>${PNAME[k]} (${list.length})</h3>` + (list.length?`<div class="pg">`+order.map(n=>{const d=DB[n]||{};
+    return `<div class="pc" data-n="${n.replace(/"/g,"&quot;")}">${d.small||d.img?`<img src="${d.small||d.img}" alt="">`:n}${counts[n]>1?`<span class="q">×${counts[n]}</span>`:""}</div>`}).join("")+`</div>`
+    :`<div class="empty">No cards here yet.</div>`) + `<button id="mClose">Close</button>`;
+  box.querySelectorAll(".pc").forEach(e=>e.onclick=()=>openCard(e.dataset.n));
+  document.getElementById("mClose").onclick=closeCard;
+  modal.classList.add("on");
+}
+function pileAt(x,y){
+  for(const k of ["gy","deck","extra"]){ const [cx,cy]=center(k); if(Math.abs(x-cx)<G.cell/2 && Math.abs(y-cy)<G.rowH/2) return k; }
+  return null;
+}
+(function(){
+  let t=null, fired=false, sx=0, sy=0;
+  stage.addEventListener("pointerdown",e=>{
+    const r=stage.getBoundingClientRect(); const k=pileAt(e.clientX-r.left,e.clientY-r.top); fired=false; if(!k) return;
+    sx=e.clientX; sy=e.clientY; t=setTimeout(()=>{ fired=true; if(navigator.vibrate) navigator.vibrate(15); openPile(k); },450);
+  });
+  const cancel=()=>{ clearTimeout(t); t=null; };
+  stage.addEventListener("pointermove",e=>{ if(t && Math.hypot(e.clientX-sx,e.clientY-sy)>10) cancel(); });
+  stage.addEventListener("pointerup",cancel); stage.addEventListener("pointercancel",cancel);
+  stage.addEventListener("click",e=>{
+    if(suppressClick){ suppressClick=false; e.stopPropagation(); return; }
+    if(fired){ e.stopPropagation(); e.preventDefault(); fired=false; return; }
+    const r=stage.getBoundingClientRect(); const k=pileAt(e.clientX-r.left,e.clientY-r.top);
+    if(k==="deck"||k==="extra"||(k==="gy"&&!e.target.closest(".card"))) openPile(k);
+  },true);
+  stage.addEventListener("contextmenu",e=>{ if(pileAt(e.clientX-stage.getBoundingClientRect().left,e.clientY-stage.getBoundingClientRect().top)) e.preventDefault(); });
+})();
+
+function go(i){ cur=Math.max(0,Math.min(STEPS.length-1,i)); render(cur); }
+function stop(){ clearTimeout(timer); timer=null; bPlay.textContent="Auto play"; }
+function tick(){ if(cur>=STEPS.length-1){ stop(); return; }
+  go(cur+1); timer=setTimeout(tick, 3200*parseFloat(document.getElementById("speed").value)); }
+bPlay.onclick=()=>{ if(timer){ stop(); return; } if(cur>=STEPS.length-1) go(0); bPlay.textContent="Pause";
+  timer=setTimeout(tick, 600); };
+document.getElementById("bNext").onclick=()=>{ stop(); go(cur+1); };
+document.getElementById("bPrev").onclick=()=>{ stop(); go(cur-1); };
+document.getElementById("bReset").onclick=()=>{ stop(); go(0); };
+document.addEventListener("keydown",e=>{
+  if(document.getElementById("modal").classList.contains("on")){ if(e.key==="Escape") closeCard(); return; }
+  if(mode!=="watch") return;
+  if(e.key==="ArrowRight"){ stop(); go(cur+1); } else if(e.key==="ArrowLeft"){ stop(); go(cur-1); }
+  else if(e.key===" "){ e.preventDefault(); bPlay.click(); }
+});
+
+let mode="watch", right=0, tries=0, qHist=[], qTimer=null;
+function qUndoBtn(){ const b=document.getElementById("qUndo"); if(b) b.disabled=!qHist.length; }
+function qUndo(){
+  const h=qHist.pop(); if(!h) return; clearTimeout(qTimer);
+  right=h.right; tries=h.tries; go(h.cur); ask(); qUndoBtn();
+  const fb=document.getElementById("fbk"); fb.className="fbk"; fb.textContent="Went back one move. Try it again.";
+}
+function qReset(){ qHist=[]; clearTimeout(qTimer); qUndoBtn(); }
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function ask(){
+  const opts=document.getElementById("opts"), fb=document.getElementById("fbk"); opts.innerHTML="";
+  document.getElementById("score").textContent = tries ? `First-try correct: ${right} of ${tries}` : "";
+  if(cur>=STEPS.length-1){ fb.className="fbk ok"; fb.textContent="Line complete. Pick another line above, or tap Start over to run this one again."; return; }
+  const nx=STEPS[cur+1]; let missed=false;
+  qUndoBtn();
+  if(nx.auto){ fb.className="fbk"; fb.textContent=nx.opp?"Your opponent takes their turn…":"Drawing a card…"; go(cur+1); qTimer=setTimeout(ask,1800); return; }
+  shuffle([nx.q, ...nx.w]).forEach(t=>{
+    const b=document.createElement("button"); b.textContent=t;
+    b.onclick=()=>{
+      if(t===nx.q){ qHist.push({cur,right,tries}); if(qHist.length>300) qHist.shift(); tries++; if(!missed) right++; fb.className="fbk ok"; fb.textContent= missed? "Correct. The explanation is above the buttons." : "Correct, first try. The explanation is above the buttons."; go(cur+1); qUndoBtn(); showNext(); }
+      else { missed=true; b.classList.remove("bad"); void b.offsetWidth; b.classList.add("bad"); fb.className="fbk no"; fb.textContent="Not quite. "+nx.hint; }
+    };
+    opts.appendChild(b);
+  });
+}
+/* setMode: replaced below */
+document.getElementById("tWatch").onclick=()=>setMode("watch");
+document.getElementById("tPractice").onclick=()=>setMode("practice");
+document.getElementById("tDeck").onclick=()=>setMode("deck");
+document.getElementById("tPlay").onclick=()=>setMode("play");
+document.getElementById("pReset").onclick=()=>setMode("practice");
+document.getElementById("qUndo").onclick=qUndo;
+
+function buildDeck(){
+  const v=document.getElementById("deckview"); v.innerHTML="";
+  for(const [sec,list] of Object.entries(DECK)){
+    const total=list.reduce((a,x)=>a+x[0],0);
+    const h=document.createElement("h2"); h.textContent=`${sec} (${total})`; v.appendChild(h);
+    const g=document.createElement("div"); g.className="dgrid";
+    list.forEach(([q,n])=>{ const d=document.createElement("div"); d.className="dcard"; const info=DB[n];
+      d.innerHTML = (info? `<img loading="lazy" src="${info.small}" alt="${n}">` : `<div class="fb" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;padding:4px">${n}</div>`) + `<span class="q">×${q}</span>`;
+      d.onclick=()=>openCard(n); g.appendChild(d); });
+    v.appendChild(g);
+  }
+}
+
+const modal=document.getElementById("modal");
+function openCard(n,u){
+  const d=DB[n]||{}; const box=document.getElementById("mbox"); box.className="mbox";
+  const c = u!=null && P.cards ? P.cards[u] : null;
+  const lvRow = false ?
+    `<div class="lvrow">Level ★${lvl(u)}<button id="lvDn">−1</button><button id="lvUp">+1</button><span>for effects that change Levels</span></div>` : "";
+  const textHTML = (ROLE[n]?`<div class="role">${ROLE[n]}</div>`:"") +
+    `<div class="desc">${d.desc ? d.desc.replace(/</g,"&lt;") : "Card text loads when you’re online."}</div>`;
+  box.innerHTML = (d.img?`<img src="${d.img}" alt="${esc(n)}" id="mImg" title="Tap to enlarge">`:`<div></div>`) +
+    `<div class="mtext"><div class="mscroll"><h3>${esc(n)}</h3>${lvRow}<div id="mBody">${textHTML}</div></div>` +
+    `<div class="mbtns"><button id="mCoach">💡 How to play it</button><button id="mClose">Close</button></div></div>`;
+  let coach=false; const body=document.getElementById("mBody"), cb=document.getElementById("mCoach");
+  cb.onclick=()=>{ coach=!coach; body.innerHTML = coach? coachHTML(n,u) : textHTML; cb.textContent = coach? "📜 Card text" : "💡 How to play it"; cb.classList.toggle("on",coach); box.querySelector(".mscroll").scrollTop=0; };
+  if(lvRow){ const bump=k=>{ c.lvMod=(c.lvMod||0)+k; renderPlay(); say(`${n} is now Level ${lvl(u)}.`); openCard(n,u); };
+    document.getElementById("lvDn").onclick=()=>bump(-1); document.getElementById("lvUp").onclick=()=>bump(1); }
+  document.getElementById("mClose").onclick=closeCard;
+  const mi=document.getElementById("mImg"); if(mi){ const t0=Date.now(); mi.onclick=e=>{ e.stopPropagation(); if(Date.now()-t0>400) bigCard(d.img,n); }; }
+  modal.classList.add("on");
+}
+function bigCard(src,n){
+  const z=document.createElement("div"); z.className="bigcard";
+  z.innerHTML=`<img src="${src}" alt="${esc(n)}"><p>Tap anywhere to close</p>`;
+  z.onclick=()=>z.remove(); document.body.appendChild(z);
+}
+function closeCard(){ modal.classList.remove("on"); }
+modal.addEventListener("click",e=>{ if(e.target===modal && !(P&&P.lvOwed&&document.getElementById("mbox").className==="sheet")) closeCard(); });
+
+
+// ===== Coach tips: what to do and what not to do =====
+const TIPS = {
+ "Dark Magician":{do:["Search it early with Illusion of Chaos, Apprentice Illusion Magician or Dark Magical Circle. Most of your cards need it.","Getting it into the GY is fine. Eternal Soul, Magicians’ Souls and Illusion of Chaos all bring it back."],
+   dont:["Don’t Normal Summon it. It’s Level 7, so it needs 2 Tributes. Special Summon it with an effect instead.","Don’t banish both copies early. Chaos Form’s banish and Destruction’s cost can strand you without one."]},
+ "Magicians' Souls":{do:["Use its hand effect to send Dark Magician Girl or Dark Magician from your Deck, then revive it straight away.","Once it’s on the field, trade dead Spells or Traps for fresh draws."],
+   dont:["Don’t Normal Summon it. Its hand effect summons it for free.","Each effect works once per turn, even if it gets negated."]},
+ "Magikuriboh":{do:["Keep it for going second. After you take damage it brings out Dark Magician or Dark Magician Girl from your Deck or GY."],
+   dont:["Don’t expect it to do anything on turn 1. Nothing has damaged you yet."]},
+ "Magician's Rod":{do:["Normal Summon it as one of your first plays and search Magician’s Salvation, Dark Magical Circle or Secrets of Dark Magic.","Send it to the GY as a cost later. On your opponent’s turn it can come back to your hand."],
+   dont:["Don’t Set it. The search only happens when it’s Normal Summoned face-up.","Don’t use another Normal Summon first. Rod needs yours."]},
+ "Dark Magician Girl":{do:["Send it to the GY with Magicians’ Souls, then revive it.","Use it as material for The Dark Magicians or Timaeus the United Magical Dragon."],
+   dont:["Don’t Normal Summon it. It’s Level 6 and needs a Tribute."]},
+ "Apprentice Illusion Magician":{do:["Special Summon it by discarding a card you don’t need, like Thousand Knives on turn 1. Then hold it to add Dark Magician.","Banish it for Dark Magician of Destruction once you’ve activated a Spell."],
+   dont:["Don’t Normal Summon it. It summons itself."]},
+ "Timaeus the United Dragon":{do:["Special Summon it by sending Magician’s Rod or a used Spellcaster from the field.","Then hold it to Fusion Summon. Dark Magician from your hand plus Timaeus makes Dark Magician the Dragon Knight."],
+   dont:["Don’t send a card you still need as its cost. Rod that already searched is perfect.","Don’t try to Normal Summon it. It’s Level 8."]},
+ "Illusion of Chaos":{do:["Reveal it first to add Dark Magician, then put a dead card back on top. Use Dark Magical Circle to dig it right back out if it mentions Dark Magician.","Ritual Summon it with Chaos Form by Tributing Dark Magician from your hand, so Dark Magician ends up in the GY for its negate."],
+   dont:["Don’t try to Normal Summon or Set it. It’s a Ritual Monster.","Don’t banish every Dark Magician from your GY. Its negate needs one there."]},
+ "Thousand Knives":{do:["Use it going second once Dark Magician is on the field. Dragon Knight and Destruction count."],
+   dont:["Don’t activate it without Dark Magician out. It won’t work."]},
+ "Dark Magic Attack":{do:["Clear your opponent’s backrow going second, once Dark Magician is on the field."],
+   dont:["Don’t waste it going first. There’s nothing to destroy."]},
+ "Preparation of Rites":{do:["Activate it to add Illusion of Chaos from your Deck, and Chaos Form from your GY if it’s there."],
+   dont:["Don’t hold it. It’s a starter, so play it at the start of your turn."]},
+ "The Eye of Timaeus":{do:["Turn Dark Magician or Dark Magician Girl on your field into a Fusion without needing a second monster."],
+   dont:["Don’t activate it without a Dark Magician monster face-up on your field."]},
+ "Magicalized Fusion":{do:["Use it late in your turn to banish materials from your GY for an extra Spellcaster Fusion, like Dark Magician of Destruction or Master of Chaos."],
+   dont:["It can only make Spellcaster Fusions. Dragon Knight and Timaeus the United Magical Dragon are Dragons."]},
+ "Magician's Salvation":{do:["Activate it to Set Eternal Soul straight from your Deck.","Later, when you summon Dark Magician or Dark Magician Girl, hold it to revive the other one from your GY."],
+   dont:["Don’t Set it. Eternal Soul is only Set when Salvation is activated."]},
+ "Chaos Form":{do:["Ritual Summon Illusion of Chaos by Tributing Dark Magician from your hand. That’s exactly Level 7.","You can also banish Dark Magician from your GY instead of Tributing."],
+   dont:["The Levels must add up to exactly 7. Dark Magician Girl (6) plus Souls (1) works, but a Level 8 doesn’t."]},
+ "Dark Magical Circle":{do:["Put a Dark Magician card on top of your Deck first with Illusion of Chaos or Soul Servant, so Circle is sure to find it.","Keep it face-up. Every time Dark Magician is summoned, it banishes a card your opponent controls."],
+   dont:["You can only activate 1 Circle per turn, so don’t play two in the same turn."]},
+ "Soul Servant":{do:["Put the card you want most on top of your Deck, then banish Servant from the GY to draw it.","Pair it with Dark Magical Circle to guarantee Circle’s search."],
+   dont:["Don’t banish it with no Dark Magician or Dark Magician Girl on the field or in the GY. It draws 0."]},
+ "Secrets of Dark Magic":{do:["Fusion Summon The Dark Magicians with Dark Magician and another Spellcaster, or Ritual Summon Illusion of Chaos.","It’s a Quick-Play Spell, so you can use it in the Battle Phase or on your opponent’s turn if it’s Set."],
+   dont:["It needs Dark Magician or Dark Magician Girl as one of the materials or Tributes."]},
+ "The Gaze of Timaeus":{do:["Set it and use it on your opponent’s turn to turn Dark Magician of Destruction into Timaeus the United Magical Dragon or Master of Chaos.","It works from the GY too, so a Dark Magician in your GY still counts."],
+   dont:["Don’t forget the Fusion is banished at the end of the next turn."]},
+ "Dark Magic Talisman":{do:["Set it before you start your big plays. It negates a monster effect your opponent chains to a Dark Magician card.","With a Spellcaster in your hand you can activate it the turn it’s Set."],
+   dont:["It only stops effects activated in response to your Dark Magician cards, not everything."]},
+ "Eternal Soul":{do:["Set it with Magician’s Salvation. On your opponent’s turn, revive Dark Magician to trigger Dark Magical Circle.","Going second, use it to add Dark Magic Attack or Thousand Knives instead."],
+   dont:["Don’t let it leave the field face-up without a plan. It destroys all your monsters when it does."]},
+ "Dark Magician the Dragon Knight":{do:["Make it with Dark Magician plus Timaeus the United Dragon. It protects all your Spells and Traps.","It counts as Dark Magician, so its summon triggers Dark Magical Circle and Magician’s Salvation."],
+   dont:["It doesn’t protect itself. Your opponent can still target it."]},
+ "The Dark Magicians":{do:["Fusion Summon it with Dark Magician or Dark Magician Girl plus another Spellcaster. It draws a card every turn you activate a Spell or Trap."],
+   dont:["Don’t forget its destroyed effect. It brings back both Dark Magician and Dark Magician Girl."]},
+ "Master of Chaos":{do:["Make it with Dark Magician plus Illusion of Chaos, or with The Gaze of Timaeus. It revives a LIGHT or DARK monster when Fusion Summoned."],
+   dont:["Gaze counts as a Fusion Summon, so the revive still works. Don’t skip it."]},
+ "Dark Magician the Knight of Dragon Magic":{do:["Make it with Dark Magician plus Timaeus the United Dragon when you want to attack hard. It gives piercing damage and burns."],
+   dont:["On a turn-1 board, Dragon Knight usually protects you better."]},
+ "Dark Magician of Destruction":{do:["Activate any Spell first, then banish a Level 6 or higher DARK Spellcaster you control to summon it.","It counts as Dark Magician. Use its search for The Gaze of Timaeus."],
+   dont:["You can only summon it once per turn, Fusion or not."]},
+ "Timaeus the United Magical Dragon":{do:["Make it with The Gaze of Timaeus on your opponent’s turn. It’s unaffected by other cards’ effects until the end of your next turn."],
+   dont:["Its Spell/Trap destroy only works on your opponent’s turn."]},
+ "Quintet Magician":{do:["Fusion Summon it with 5 Spellcasters that all have different names to destroy every card your opponent controls."],
+   dont:["It must be Fusion Summoned. It can’t be revived from the GY if it wasn’t."]},
+ "Miasma Necromancer":{do:["Link Summon it with 2 monsters, including a DARK Spellcaster, to get a Level 5 or higher DARK Spellcaster back from your GY.","Its second effect gives you an extra Normal Summon for a Spellcaster, like Magician’s Rod."],
+   dont:["You can’t activate cards with the name it added back for the rest of the turn."]}
+};
+
+function nowTips(n,u){
+  const out=[]; if(u==null || !P.cards || !P.cards[u]) return out;
+  const c=P.cards[u], k=KIND[n], w=c.where, d=info(n);
+  if(w==="hand" && k==="mon"){
+    const L=d&&d.level; if(/Ritual/.test(d&&d.type||"")) out.push("It’s a Ritual Monster, so it can’t be Normal Summoned. Activate Chaos Form or Secrets of Dark Magic, then drag it onto the field."); else if(L>=7) out.push(`It’s Level ${L}, so a Normal Summon needs 2 Tributes.`); else if(L>=5) out.push(`It’s Level ${L}, so a Normal Summon needs 1 Tribute.`);
+    out.push(P.normalUsed? "You’ve already used your Normal Summon this turn. To play it now, you need a card effect that Special Summons it." : "Your Normal Summon is still available this turn.");
+    out.push("Pick Normal Summon, Set, or Special below the field, then drag it onto a Monster Zone.");
+  }
+  if(w==="hand" && k==="spell") out.push("Drag it onto a Spell & Trap Zone to activate it, or choose Set below the field first to Set it face-down."+(subType(n)==="Field"?" Field Spells go in the Field Zone.":""));
+  if(w==="hand" && k==="trap") out.push("Drag it onto a Spell & Trap Zone to Set it. You can activate it starting next turn.");
+  if(w==="extra"){ const req=d? d.desc.split("\n")[0] : ""; if(req) out.push(`Materials: ${req}`);
+    if(P.lock && !matchWords(n,P.lock.words)) out.push(`Locked out: after ${P.lock.src}, you can only Special Summon ${P.lock.text} monsters from the Extra Deck this turn.`);
+    out.push("Activate a Fusion card or effect first, then open your Extra Deck, drag it onto a Monster Zone and pick the materials."); }
+  if(isZone(w) && c.pos==="set" && k==="trap") out.push(c.placedTurn===P.turn? "You Set it this turn, so it can’t be activated until your next turn." : "It’s ready. Hold it to activate it.");
+  if(isMonZone(w)){ if(c.placedTurn===P.turn) out.push("It was put on the field this turn, so its battle position can’t change yet.");
+    else out.push("Double-tap it to change its battle position."); }
+  if(w==="deck"){ const ok=["hand","gy","field"].filter(dst=>!deckCheck(u,dst).err); out.push(ok.length? `An effect you used lets you take this card: ${ok.map(x=>DEST_WORD[x]).join(" or ")}.` : "No effect you’ve used right now lets this card leave your Deck."); }
+  if(["gy","ban","deck"].includes(w)) out.push("Drag it out of the pile onto the field or your hand when a card effect lets you."+(w==="gy"?" Hold it to use an effect it has in the GY.":""));
+  const used=P.used[n]||0; if(used) out.push(`You’ve already used ${n}’s effect${used>1?"s":""} this turn.`);
+  return out;
+}
+function coachHTML(n,u){
+  const t=TIPS[n]||{do:[],dont:[]}, now=nowTips(n,u), li=a=>a.map(x=>`<li>${esc(x)}</li>`).join("");
+  return `<div class="coach">${now.length?`<h4>Right now</h4><ul class="now">${li(now)}</ul>`:""}`+
+    `<h4>What to do</h4><ul>${li(t.do)}</ul><h4>What not to do</h4><ul class="dont">${li(t.dont)}</ul></div>`;
+}
+
+// ===== Free play: drag and drop with rule checks =====
+const P = {};
+const pEls = {};
+const MZ=["m0","m1","m2","m3","m4"], SZ=["s0","s1","s2","s3","s4"], EMZ=["emzL","emzR"];
+const FIELD=[...MZ,...EMZ,...SZ,"field"];
+const KIND={}; for(const [sec,l] of Object.entries(DECK)) l.forEach(([q,n])=>KIND[n]= sec==="Monsters"?"mon":sec==="Spells"?"spell":sec==="Traps"?"trap":"extra");
+const isZone=k=>FIELD.includes(k), isMonZone=k=>MZ.includes(k)||EMZ.includes(k);
+const info=n=>DB[n]||null;
+const isMonKind=n=>KIND[n]==="mon"||KIND[n]==="extra";
+function lvl(u){ const c=P.cards[u], d=info(c.n); if(!d||d.level==null) return null; return Math.max(1,d.level+(c.lvMod||0)); }
+const ALIAS={"Scarred Dragon Archfiend":"Red Dragon Archfiend"};
+const nameIs=(u,q)=>{ const c=P.cards[u]; return c.n===q || (ALIAS[c.n]===q && (isZone(c.where)||c.where==="gy")); };
+function tuner(n){ const d=info(n); return d? /Tuner/.test(d.type) : null; }
+function subType(n){ const d=info(n); return d? d.race : null; }
+function occ(k){ for(const u in P.cards) if(P.cards[u].where===k) return u; return null; }
+function monsters(){ return Object.keys(P.cards).filter(u=>isMonZone(P.cards[u].where)); }
+function freeMZ(){ return MZ.find(k=>!occ(k)); }
+function freeSZ(){ return SZ.find(k=>!occ(k)); }
+const byT=(a,b)=>P.cards[a].t-P.cards[b].t;
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+let suppressClick=false, drag=null, toastT=null;
+
+function toast(msg,bad){
+  let t=stage.querySelector(".toast"); if(!t){ t=document.createElement("div"); t.className="toast"; stage.appendChild(t); }
+  t.textContent=msg; t.classList.toggle("bad",!!bad); t.classList.add("on");
+  t.style.top=(G.rowH*0.95)+"px";
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("on"), bad?3600:2200);
+}
+function say(msg){ const c=document.getElementById("cap"); c.textContent=msg; c.className=""; const t=stage.querySelector(".toast"); if(t) t.classList.remove("on"); }
+function no(msg){ const c=document.getElementById("cap"); c.textContent=msg; c.className="bad"; toast(msg,true);
+  if(navigator.vibrate) navigator.vibrate([30,40,30]); renderPlay(); return false; }
+/* pstat: replaced below */
+
+/* newGame: replaced below */
+/* place: replaced below */
+function makePEl(u){
+  const n=P.cards[u].n, el=document.createElement("div"); el.className="card pcard"; el.style.display="none";
+  el.innerHTML=`<div class="fb">${esc(n)}</div><div class="back"></div><span class="lv"></span>`;
+  addImg(el,n); stage.appendChild(el); pEls[u]=el;
+  el.addEventListener("pointerdown",e=>{
+    const c=P.cards[u]; if(!(c.where==="hand"||isZone(c.where))) return;
+    e.preventDefault(); try{ el.setPointerCapture(e.pointerId); }catch(_){}
+    drag={u,sx:e.clientX,sy:e.clientY,moved:false,long:false,r:stage.getBoundingClientRect()};
+    const dd=drag; dd.lp=setTimeout(()=>{ if(drag===dd && !dd.moved && !P.sel){ dd.long=true; if(navigator.vibrate) navigator.vibrate(20); holdCard(u); } },500);
+  });
+  el.addEventListener("pointermove",e=>{
+    if(!drag||drag.u!==u||P.sel||drag.long) return;
+    if(!drag.moved && Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)<8) return;
+    drag.moved=true; clearTimeout(drag.lp); el.style.transition="none"; el.style.zIndex=300;
+    const x=e.clientX-drag.r.left, y=e.clientY-drag.r.top;
+    el.style.transform=`translate(${x-G.cw/2}px,${y-G.ch/2}px) scale(1.3)`;
+  });
+  el.addEventListener("pointerup",e=>{
+    if(!drag||drag.u!==u) return; const d=drag; drag=null; clearTimeout(d.lp); el.style.transition="";
+    suppressClick=true; setTimeout(()=>suppressClick=false,400);
+    if(d.long) return;
+    if(d.moved){ dropAt(u,e.clientX-d.r.left,e.clientY-d.r.top,overBan(e)); renderPlay(); return; }
+    const c=P.cards[u];
+    if(P.sel || !isMonZone(c.where)) return tapCard(u);
+    if(lastTap.u===u && Date.now()-lastTap.t<320){ clearTimeout(lastTap.tm); lastTap={}; return changePos(u); }
+    lastTap={u,t:Date.now(),tm:setTimeout(()=>{ lastTap={}; tapCard(u); },320)};
+  });
+  el.addEventListener("pointercancel",()=>{ if(drag) clearTimeout(drag.lp); drag=null; el.style.transition=""; renderPlay(); });
+}
+let lastTap={};
+function overBan(e){ return document.elementsFromPoint(e.clientX,e.clientY).some(x=>x.id==="pBan"); }
+function holdCard(u){
+  if(P.owed||P.lvOwed) return no(OWE_MSG);
+  const c=P.cards[u], w=c.where;
+  if(w==="hand") return useEffect(u);
+  if(isMonZone(w)) return c.pos==="set"? changePos(u) : useEffect(u);
+  if(isZone(w)) return c.pos==="set"? activateSet(u) : useEffect(u);
+  if(w==="gy"||w==="ban") return useEffect(u);
+  if(w==="deck"||w==="extra") return no("Cards in your Deck can’t use their effects from there. Drag it out when a card effect lets you.");
+}
+function addImg(el,n){ const d=DB[n]; if(d && !el.querySelector("img")){ const im=new Image(); im.alt=n; im.draggable=false; im.src=d.small||d.img;
+  im.onload=()=>{ const f=el.querySelector(".fb"); if(f) f.style.display="none"; }; el.prepend(im); } }
+function applyPImages(){ for(const u in pEls) addImg(pEls[u],P.cards[u].n); }
+
+function zoneAt(x,y){
+  for(const k in Z){ const [cx,cy]=center(k); if(Math.abs(x-cx)<G.cell/2 && Math.abs(y-cy)<G.rowH/2) return k; }
+  return null;
+}
+
+function renderPlay(animate=true){
+  if(!P.cards) return;
+  const ids=Object.keys(P.cards);
+  const hand=ids.filter(u=>P.cards[u].where==="hand").sort(byT);
+  const gy=ids.filter(u=>P.cards[u].where==="gy").sort(byT);
+  const hs=1.2, hw=G.cw*hs, n=hand.length;
+  const gap=n>1? Math.min(hw*1.08,(G.W-hw-16)/(n-1)) : 0;
+  const hx0=G.W/2-gap*(n-1)/2, hy=G.boardH+8+G.handH/2;
+  for(const u of ids){
+    const el=pEls[u], c=P.cards[u]; let x,y,sc=1,zi=10,rot=0,show=true;
+    if(c.where==="hand"){ const k=hand.indexOf(u); x=hx0+k*gap; y=hy; sc=hs; zi=50+k; }
+    else if(c.where==="gy"){ const k=gy.indexOf(u); [x,y]=center("gy"); y-=k*1.2; zi=20+k; }
+    else if(isZone(c.where)){ [x,y]=center(c.where); zi=30; if(isMonZone(c.where) && (c.pos==="def"||c.pos==="set")) rot=90; }
+    else show=false;
+    if(!show){ el.style.display="none"; continue; }
+    el.style.width=G.cw+"px"; el.style.height=G.ch+"px";
+    if(el.style.display==="none"){
+      el.style.display="";
+      const src=["deck","extra","gy"].includes(c.prev)?c.prev:null;
+      if(src && animate){ const [px,py]=center(src); el.style.transition="none";
+        el.style.transform=`translate(${px-G.cw/2}px,${py-G.ch/2}px)`; el.offsetHeight; el.style.transition=""; }
+    }
+    if(!animate) el.style.transition="none";
+    el.style.transform=`translate(${x-G.cw/2}px,${y-G.ch/2}px) scale(${sc}) rotate(${rot}deg)`;
+    el.style.zIndex=zi; el.style.pointerEvents = c.where==="gy" ? "none" : "auto";
+    el.classList.toggle("down", c.pos==="set");
+    el.classList.toggle("pick", !!(P.sel && P.sel.picked.includes(u)));
+    const L=isMonZone(c.where)&&c.pos!=="set"? lvl(u) : null;
+    const lv=el.querySelector(".lv"); lv.textContent = L!=null? "★"+L : ""; lv.classList.toggle("mod", !!c.lvMod);
+    if(!animate){ el.offsetHeight; el.style.transition=""; }
+  }
+  updatePileCounts(); pstat(); track();
+}
+
+
+
+// ---- Permissions: a card only leaves the Deck or GY when an effect says it can ----
+const DEST_WORD={hand:"add to your hand",gy:"send to the GY",field:"Special Summon"};
+const LOCW=t=>{ const o=[]; if(/\bhand\b/i.test(t)) o.push("hand"); if(/\b(GY|Graveyard)\b/.test(t)) o.push("gy");
+  if(/\bfield\b|you control|Monster Zone/i.test(t)) o.push("field"); if(/\bDeck\b/.test(t)) o.push("deck"); return o; };
+const SRC_WORD={deck:"Deck",gy:"GY",hand:"hand",extra:"Extra Deck"};
+/* parseGrants: replaced below */
+/* grantFrom: replaced below */
+/* fitsPhrase: replaced below */
+/* permCheck: replaced below */
+const deckCheck=(u,dest)=>permCheck(u,"deck",dest);
+/* useGrant: replaced below */
+/* grantText: replaced below */
+
+// ---- Effects and costs, read from the card's own text ----
+/* parseCost: replaced below */
+/* effectsOf: replaced below */
+const locOf=w=> w==="hand"||w==="gy"||w==="deck"||w==="ban"||w==="extra" ? w : isZone(w)? "field" : w;
+const OWE_MSG="Something still needs to be done before you can make another move. Look back at the card you just used.";
+function pendGY(){ return Object.keys(P.cards).some(k=>P.cards[k].toGY && isZone(P.cards[k].where)); }
+/* owe: replaced below */
+/* pays: replaced below */
+/* payOwed: replaced below */
+/* effectsHere: replaced below */
+
+
+/* fxUsed: replaced below */
+/* synchroOptions: replaced below */
+/* whatNow: replaced below */
+
+// ---- Undo: every change to the duel is saved as one step ----
+let hist=[], lastState=null, restoring=false;
+/* ser: replaced below */
+function track(){
+  if(restoring) return; const j=ser();
+  if(lastState!==null && j!==lastState){ hist.push({s:lastState,cap:document.getElementById("cap").textContent}); if(hist.length>300) hist.shift(); }
+  lastState=j; document.getElementById("pUndo").disabled=!hist.length;
+}
+/* undo: replaced below */
+document.getElementById("pUndo").onclick=undo;
+
+// ---- Selecting cards (Tributes, Synchro materials) ----
+function startSelect(o){
+  P.sel=Object.assign({picked:[]},o);
+  document.getElementById("selT").textContent=o.title;
+  document.getElementById("selOk").style.display = o.need ? "none" : "";
+  document.getElementById("selBar").style.display="";
+  say(o.title); renderPlay();
+}
+function endSelect(){ P.sel=null; document.getElementById("selBar").style.display="none"; }
+document.getElementById("selNo").onclick=()=>{ endSelect(); say("Cancelled."); renderPlay(); };
+document.getElementById("selOk").onclick=()=>{ const s=P.sel; if(!s) return; if(!s.picked.length) return no("Tap your monsters first to pick them."); s.done([...s.picked]); };
+
+function tapCard(u){
+  const c=P.cards[u];
+  if(P.sel){
+    if(!isMonZone(c.where)) return no("Pick monsters on your field.");
+    if(P.sel.kind==="synchro" && c.pos==="set") return no("Face-down monsters can’t be used as Synchro Material.");
+    const p=P.sel.picked, i=p.indexOf(u); i>=0? p.splice(i,1) : p.push(u);
+    renderPlay();
+    if(P.sel.need && p.length===P.sel.need) P.sel.done([...p]);
+    return;
+  }
+  openCard(c.n,u);
+}
+
+// ---- Once-per-turn checks ----
+// The "If ..." condition a card's effect needs before it can be used
+/* condErr: replaced below */
+function setLock(src,text){
+  const words=text.trim().split(/\s+/);
+  if(P.lock){ P.lock.words=[...new Set(P.lock.words.concat(words))]; P.lock.text=P.lock.words.join(" "); P.lock.src+=" and "+src; }
+  else P.lock={src,text:text.trim(),words};
+  return ` From now on this turn you can only Special Summon ${P.lock.text} monsters from the Extra Deck.`;
+}
+// "You cannot Special Summon from the Extra Deck ... the turn you activate (either of) this card's effect(s)"
+function turnLock(n,e){
+  const all=effectsOf(n);
+  for(const x of all){ const m=/cannot Special Summon monsters from the Extra Deck,?(?: for the rest of this turn,?)? except ([^.,]+?) Monsters?,? the turn you activate (either of this card's effects|this effect)/i.exec(x.text)
+      || (/^You cannot Special Summon monsters from the Extra Deck the turn you activate (this effect)/i.test(x.text) && /except ([^.,]+?) Monsters?/i.exec(x.text));
+    if(!m) continue;
+    const either=/either/i.test(x.text);
+    if(either || (e && e.i===x.i-1)) return setLock(n,m[1]);
+  }
+  return "";
+}
+/* optCheck: replaced below */
+function matchWords(n,words){
+  const d=info(n); if(!d) return true;
+  return words.every(w=> d.attribute===w.toUpperCase() || d.race===w || d.type.includes(w));
+}
+
+// ---- Summons ----
+/* tryNormal: replaced below */
+function trySpecial(u,zone,pos,how){
+  const c=P.cards[u], ex=KIND[c.n]==="extra", src=locOf(c.where);
+  if(ex && !c.proper) return no(`${c.n} was never properly Summoned from the Extra Deck, so it can’t be Special Summoned from the ${c.where==="gy"?"GY":"banishment"}.`);
+  if(zone && EMZ.includes(zone) && !ex) return no("Only monsters Summoned from the Extra Deck can go in an Extra Monster Zone.");
+  if(zone && occ(zone)) return no("That zone already has a card in it.");
+  const z = zone || freeMZ() || (ex && !EMZ.some(occ) ? "emzL" : null);
+  if(!z) return no("All your Monster Zones are full.");
+  const from=c.where==="hand"?"your hand":c.where==="gy"?"your GY":c.where==="deck"?"your Deck":"banishment";
+  const own = !ex && (src==="hand"||src==="gy") ? effectsOf(c.n).find(e=>e.selfSS && e.locs.includes(src)) : null;
+  let grant=null;
+  if(!how && (src==="hand"||src==="gy")){
+    if(src==="gy"){ const r=permCheck(u,"gy","field"); grant=r.g||null;
+      if(!own && !grant) return no(r.err); }
+    else grant=(P.grants||[]).find(g=>g.dest==="field"&&(g.from||[]).includes("hand")&&g.except!==c.n&&fitsPhrase(c.n,g.phrase))||null;
+    if(own && grant) return sheet(c.n,null,`How are you Special Summoning ${c.n}?`,[["With its own effect",()=>trySpecial(u,zone,pos,"own")],[`With ${grant.src}’s effect`,()=>trySpecial(u,zone,pos,"other")]]);
+    how = own? "own" : grant? "other" : null;
+  }
+  if(how==="own" && own){
+    const ce=condErr(u,own); if(ce) return no(ce);
+    const way=/You can only Special Summon "[^"]+" once per turn this way/i.test(info(c.n).desc);
+    if(way && P.used["ss:"+c.n]) return no(`You can only Special Summon ${c.n} this way once per turn, and you already did this turn.`);
+    const go=()=>{
+      if(way) P.used["ss:"+c.n]=1;
+      place(u,z,{pos,placedTurn:P.turn});
+      let extra="";
+      const m=/cannot Special Summon monsters from the Extra Deck for the rest of this turn, except ([^.,]+?) monsters/i.exec(own.text)
+        || /If Summoned this way, you cannot Special Summon monsters from the Extra Deck for the rest of this turn, except ([^.,]+?) monsters/i.exec(info(c.n).desc);
+      if(m) extra=setLock(c.n,m[1]);
+      extra+=turnLock(c.n,own);
+      if(own.cost) owe(u,own);
+      const gt=grantFrom(c.n,own.text);
+      say(`Special Summoned ${c.n} from ${from} with its own effect, in ${pos==="atk"?"Attack":"Defense"} Position.${extra}${gt}`);
+      renderPlay();
+    };
+    return !way && /You can only use (each effect|this effect) of/i.test(info(c.n).desc)? optCheck(c.n,go,own) : go();
+  }
+  if(how==="other"){
+    const g = grant || (src==="gy"? permCheck(u,"gy","field").g : (P.grants||[]).find(g=>g.dest==="field"&&(g.from||[]).includes("hand")&&g.except!==c.n&&fitsPhrase(c.n,g.phrase)));
+    if(src==="gy" && !g) return no(permCheck(u,"gy","field").err);
+    if(g) useGrant(g);
+    place(u,z,{pos,placedTurn:P.turn});
+    say(`Special Summoned ${c.n} from ${from} with ${g?g.src+"’s":"a card’s"} effect, in ${pos==="atk"?"Attack":"Defense"} Position.`);
+    return renderPlay();
+  }
+  if(src==="hand"){
+    const ce=own? condErr(u,own) : "";
+    return no(ce || (P.normalUsed
+      ? `You’ve already used your Normal Summon this turn, and no card effect is letting you Special Summon ${c.n} from your hand right now.`
+      : `No card effect is letting you Special Summon ${c.n} from your hand right now. To Normal Summon it instead, pick Normal Summon in “Play cards as”.`));
+  }
+  place(u,z,{pos,placedTurn:P.turn});
+  say(`Special Summoned ${c.n} from ${from} in ${pos==="atk"?"Attack":"Defense"} Position. Remember this needs a card effect that allows it.`);
+  renderPlay();
+}
+/* startSynchro: replaced below */
+/* startSynchroSelect: replaced below */
+/* synErr: replaced below */
+/* finishSynchro: replaced below */
+
+// ---- Spells & Traps ----
+function resolveLater(u){
+  const c=P.cards[u], st=subType(c.n)||"Normal";
+  if(["Normal","Quick-Play","Ritual","Counter"].includes(st)) P.cards[u].toGY=true;
+  return st;
+}
+function stCost(u){ const e=effectsOf(P.cards[u].n).find(e=>!e.locs); if(e&&e.cost) owe(u,e); }
+/* tryActivate: replaced below */
+function trySet(u,zone){
+  const c=P.cards[u], st=subType(c.n);
+  if(st==="Field"){ if(zone && zone!=="field") return no("Field Spells go in the Field Zone.");
+    const old=occ("field"); if(old) place(old,"gy"); place(u,"field",{pos:"set",placedTurn:P.turn}); }
+  else {
+    if(zone==="field") return no("Only Field Spells go in the Field Zone.");
+    if(zone && occ(zone)) return no("That zone already has a card in it.");
+    const z=zone||freeSZ(); if(!z) return no("All 5 of your Spell & Trap Zones are full.");
+    place(u,z,{pos:"set",placedTurn:P.turn});
+  }
+  say(`Set ${c.n} face-down.${KIND[c.n]==="trap"?" You can activate it starting next turn.":""}`); renderPlay();
+}
+/* activateSet: replaced below */
+
+// ---- Effects and other actions ----
+/* useEffect: replaced below */
+function changePos(u){
+  if(P.owed||P.lvOwed) return no(OWE_MSG);
+  const c=P.cards[u];
+  if(c.placedTurn===P.turn) return no("You can’t change a monster’s battle position the turn it was Summoned or Set.");
+  if(c.posTurn===P.turn) return no("You can only change a monster’s battle position once per turn.");
+  if(c.pos==="set"){ c.pos="atk"; c.posTurn=P.turn; say(`Flip Summoned ${c.n}.`); }
+  else { c.pos = c.pos==="atk"?"def":"atk"; c.posTurn=P.turn; say(`${c.n} is now in ${c.pos==="atk"?"Attack":"Defense"} Position.`); }
+  renderPlay();
+}
+/* moveTo: replaced below */
+
+let dropMode="normal";
+document.querySelectorAll("#dmode button").forEach(b=>b.onclick=()=>setDropMode(b.dataset.m));
+function setDropMode(m){ dropMode=m; document.querySelectorAll("#dmode button").forEach(b=>b.classList.toggle("on",b.dataset.m===m)); }
+const FROM={hand:"from your hand",gy:"from your GY",deck:"from your Deck",extra:"from your Extra Deck",ban:"from banishment"};
+/* dropAt: replaced below */
+/* dropInner: replaced below */
+
+// ---- Menus ----
+/* lvSheet: replaced below */
+function sheet(n,u,msg,acts){
+  const d=DB[n]||{}, box=document.getElementById("mbox"); box.className="sheet";
+  box.innerHTML=`<div class="hd">${d.small?`<img src="${d.small}" alt="">`:""}<div><h3>${esc(n)}</h3>${msg?`<p>${esc(msg)}</p>`:""}</div></div>`;
+  const add=(label,fn,cls)=>{ const b=document.createElement("button"); b.textContent=label; if(cls) b.className=cls; b.onclick=()=>{ closeCard(); fn(); }; box.appendChild(b); };
+  acts.forEach(([l,f,off])=>{ add(l,f); if(off){ const b=box.lastChild; b.disabled=true; b.classList.add("used"); } });
+  add("Card details",()=>openCard(n));
+  add("Cancel",()=>{},"cancel");
+  modal.classList.add("on");
+}
+function pileGesture(el,u){
+  el.addEventListener("pointerdown",e=>{
+    e.preventDefault(); const sx=e.clientX, sy=e.clientY; let moved=false, long=false;
+    const lp=setTimeout(()=>{ if(!moved){ long=true; if(navigator.vibrate) navigator.vibrate(20); closeCard(); holdCard(u); } },500);
+    const mv=ev=>{ if(long) return;
+      if(!moved && Math.hypot(ev.clientX-sx,ev.clientY-sy)<8) return;
+      if(!moved){ moved=true; clearTimeout(lp); closeCard(); startPileDrag(u); }
+      pileDragMove(u,ev); };
+    const up=ev=>{ clearTimeout(lp); window.removeEventListener("pointermove",mv); window.removeEventListener("pointerup",up); window.removeEventListener("pointercancel",cx);
+      if(long) return;
+      if(moved){ const r=stage.getBoundingClientRect(); pEls[u].style.transition=""; pEls[u].style.pointerEvents="";
+        dropAt(u,ev.clientX-r.left,ev.clientY-r.top,overBan(ev)); renderPlay(); return; }
+      openCard(P.cards[u].n,u); };
+    const cx=()=>{ clearTimeout(lp); window.removeEventListener("pointermove",mv); window.removeEventListener("pointerup",up); window.removeEventListener("pointercancel",cx); renderPlay(); };
+    window.addEventListener("pointermove",mv); window.addEventListener("pointerup",up); window.addEventListener("pointercancel",cx);
+  });
+}
+function startPileDrag(u){
+  const el=pEls[u]; el.style.display=""; el.style.width=G.cw+"px"; el.style.height=G.ch+"px";
+  el.style.transition="none"; el.style.zIndex=300; el.style.pointerEvents="none"; el.classList.remove("down");
+}
+function pileDragMove(u,e){ const r=stage.getBoundingClientRect(), el=pEls[u];
+  el.style.transform=`translate(${e.clientX-r.left-G.cw/2}px,${e.clientY-r.top-G.ch/2}px) scale(1.3)`; }
+function openPlayPile(k){
+  if(P.sel) return no("Finish picking cards first, or tap Cancel.");
+  let list=Object.keys(P.cards).filter(u=>P.cards[u].where===k);
+  if(k==="gy"||k==="ban") list.sort((a,b)=>P.cards[b].t-P.cards[a].t); else list.sort((a,b)=>P.cards[a].n.localeCompare(P.cards[b].n));
+  const groups=[]; const seen={};
+  list.forEach(u=>{ const n=P.cards[u].n; if(seen[n]) seen[n].q++; else { seen[n]={u,n,q:1}; groups.push(seen[n]); } });
+  const box=document.getElementById("mbox"); box.className="pview";
+  const title={gy:"Graveyard",deck:"Deck",extra:"Extra Deck",ban:"Banished"}[k];
+  box.innerHTML=`<h3>${title} (${list.length})</h3>` + (list.length? `<div class="pg">`+groups.map(g=>{ const d=DB[g.n]||{};
+    return `<div class="pc" data-u="${g.u}">${d.small?`<img src="${d.small}" alt="">`:esc(g.n)}${g.q>1?`<span class="q">×${g.q}</span>`:""}</div>`; }).join("")+`</div>`
+    : `<div class="empty">No cards here.</div>`) + `<p class="empty" style="margin:0;font-size:13px">Tap a card for details. Drag it out onto the field or your hand.${k==="gy"||k==="ban"?" Hold it to use its effect from here.":""}</p><button id="mClose">Close</button>`;
+  box.querySelectorAll(".pc").forEach(e=>pileGesture(e,e.dataset.u));
+  document.getElementById("mClose").onclick=closeCard;
+  modal.classList.add("on");
+}
+
+document.getElementById("pNext").onclick=()=>{
+  if(P.sel) return no("Finish picking cards first, or tap Cancel.");
+  if(P.owed||P.lvOwed) return no(OWE_MSG);
+  const h=Object.values(P.cards).filter(c=>c.where==="hand").length;
+  if(h>6) return no(`You have ${h} cards in hand. Discard down to 6 before ending your turn.`);
+  P.turn++; P.normalUsed=false; P.used={}; P.usedE={}; P.lock=null; P.grants=[]; setDropMode("normal");
+  if(!P.deck.length){ say(`Turn ${P.turn}. Your Deck is empty, so you can’t draw. In a real duel, you’d lose here.`); return renderPlay(); }
+  const u=P.deck[P.deck.length-1]; place(u,"hand");
+  say(`Turn ${P.turn}. You drew ${P.cards[u].n}. Your Normal Summon and once-per-turn effects are available again.`);
+  renderPlay();
+};
+document.getElementById("pNew").onclick=()=>newGame();
+document.getElementById("pWhat").onclick=whatNow;
+document.getElementById("pBan").onclick=()=>openPlayPile("ban");
+
+
+// ===== Dark Magician rules for free play =====
+// Each card's effects are written out by hand below (FX). Effects give you "permissions" to move cards,
+// and costs light the red dot until you pay them. Fusion, Ritual and Link Summons check their materials.
+for(const k in ALIAS) delete ALIAS[k];
+Object.assign(ALIAS,{"Dark Magician the Dragon Knight":"Dark Magician","Dark Magician of Destruction":"Dark Magician"});
+const DMN="Dark Magician", DMGN="Dark Magician Girl";
+const Dn=n=>info(n)||{};
+const isST=n=>KIND[n]==="spell"||KIND[n]==="trap";
+const ment=(n,q)=>(Dn(n).desc||"").includes('"'+q+'"');
+const scN=n=>isMonKind(n)&&Dn(n).race==="Spellcaster";
+const ritN=n=>/Ritual/.test(Dn(n).type||"")&&isMonKind(n);
+const PRED={
+  any:n=>true,
+  stDM:n=>isST(n)&&ment(n,DMN),
+  dm:n=>n===DMN,
+  dmg:n=>n===DMGN,
+  dmMon:n=>n===DMN||(KIND[n]==="mon"&&!ritN(n)&&ment(n,DMN)),
+  lv6sc:n=>scN(n)&&KIND[n]==="mon"&&(Dn(n).level||0)>=6,
+  dmOrDmg:n=>n===DMN||n===DMGN,
+  timCost:n=>scN(n)||(isST(n)&&ment(n,DMN)),
+  rit7:n=>ritN(n)&&KIND[n]==="mon"&&(Dn(n).level||0)<=7,
+  ritSpell:n=>KIND[n]==="spell"&&Dn(n).race==="Ritual",
+  es:n=>n==="Eternal Soul",
+  dmaTk:n=>n==="Dark Magic Attack"||n==="Thousand Knives",
+  dmCard:n=>n===DMN||ment(n,DMN),
+  lightDark:n=>isMonKind(n)&&["LIGHT","DARK"].includes(Dn(n).attribute),
+  lv5darkSc:n=>scN(n)&&Dn(n).attribute==="DARK"&&(Dn(n).level||0)>=5,
+  spell:n=>KIND[n]==="spell",
+  st:n=>isST(n),
+  souls:n=>n==="Magicians' Souls",
+  kuri:n=>n==="Magikuriboh",
+  sc:n=>scN(n)
+};
+const ph=p=>String(p||"").startsWith("@")? p.split("|")[1] : p;
+function fitsPhrase(cand,phrase){ if(String(phrase||"").startsWith("@")){ const f=PRED[phrase.slice(1).split("|")[0]]; return f? !!f(cand) : true; } return true; }
+const G_=(dest,from,pk,label,o={})=>Object.assign({dest,from,left:1,phrase:"@"+pk+"|"+label},o);
+const C_=(act,pk,label,from,to,o={})=>Object.assign({act,self:pk==="self",need:1,phrase:"@"+(pk==="self"?"any":pk)+"|"+label,from,to},o);
+
+// FX: every effect of every card. locs: where it's used from (field = on the field face-up).
+// on:"act" marks a Spell/Trap's activation. once: shared once-per-turn key. sum: once each time it's summoned.
+const FX={
+ "Magicians' Souls":[
+  {k:"draw",t:"Send up to 2 Spells/Traps from your hand or field to the GY, then draw that many",locs:["field"],once:"draw",run:"soulsDraw"},
+  {k:"hand",t:"Send a Level 6+ Spellcaster from your Deck to the GY, then Special Summon this card or revive Dark Magician / Dark Magician Girl",locs:["hand"],once:"hand",run:"soulsHand"}],
+ "Magikuriboh":[
+  {k:"q",t:"Send this card from your hand to the GY to Special Summon Dark Magician or Dark Magician Girl from your Deck or GY",locs:["hand"],once:"q",cond:"tookDamage",note:"In a duel, this only works after you’ve taken battle or effect damage this turn.",
+   cost:C_("send","self","this card",["hand"],"gy"),grants:[G_("field",["deck","gy"],"dmOrDmg","Dark Magician or Dark Magician Girl")]},
+  {k:"gy",t:"Add this card from your GY to your hand",locs:["gy"],once:"gy",cond:"scDestroyed",note:"In a duel, this only works after a Spellcaster you control is destroyed by battle or an opponent’s effect.",grants:[G_("hand",["gy"],"kuri","Magikuriboh")]}],
+ "Magician's Rod":[
+  {k:"ns",t:"Add 1 Spell/Trap that mentions Dark Magician from your Deck",locs:["field"],once:"ns",cond:"justNS",sum:true,grants:[G_("hand",["deck"],"stDM","Spell/Trap that mentions Dark Magician")]},
+  {k:"gy",t:"Tribute a Spellcaster to add this card from your GY to your hand",locs:["gy"],once:"gy",cond:"oppTurn"}],
+ "Apprentice Illusion Magician":[
+  {k:"ss",t:"Special Summon this card from your hand by discarding 1 card",locs:["hand"],ss:true,cost:C_("discard","any","card",["hand"],"gy",{other:true})},
+  {k:"add",t:"Add Dark Magician from your Deck",locs:["field"],cond:"justSummoned",sum:true,grants:[G_("hand",["deck"],"dm","Dark Magician")]},
+  {k:"atk",t:"Send this card to give your DARK Spellcaster 2000 ATK/DEF in battle",locs:["hand","field"],cond:"battle"}],
+ "Timaeus the United Dragon":[
+  {k:"ss",t:"Special Summon this card from your hand by sending a Spellcaster or a Dark Magician Spell/Trap from your hand or field to the GY",locs:["hand"],ss:true,once:"ss",
+   cost:C_("send","timCost","Spellcaster, or Spell/Trap that mentions Dark Magician",["hand","field"],"gy",{other:true})},
+  {k:"fus",t:"Fusion Summon using monsters from your hand or field, including a Spellcaster",locs:["field"],once:"fus",run:"fusTimaeus"}],
+ "Illusion of Chaos":[
+  {k:"rev",t:"Reveal it: add Dark Magician or a monster that mentions it, then put 1 card from your hand on top of your Deck",locs:["hand"],once:"rev",
+   grants:[G_("hand",["deck"],"dmMon","Dark Magician, or a non-Ritual monster that mentions it",{then:"top1"})]},
+  {k:"neg",t:"Return this card to your hand to Special Summon Dark Magician from your GY and negate a monster effect",locs:["field"],once:"neg",cond:"oppTurn"}],
+ "Thousand Knives":[{k:"act",on:"act",t:"Destroy 1 monster your opponent controls",cond:"controlDM",note:"There’s no opponent in free play, so nothing is destroyed."}],
+ "Dark Magic Attack":[{k:"act",on:"act",t:"Destroy all Spells and Traps your opponent controls",cond:"controlDM",note:"There’s no opponent in free play, so nothing is destroyed."}],
+ "Preparation of Rites":[{k:"act",on:"act",t:"Add a Level 7 or lower Ritual Monster from your Deck, then you can add a Ritual Spell from your GY",
+   grants:[G_("hand",["deck"],"rit7","Level 7 or lower Ritual Monster"),G_("hand",["gy"],"ritSpell","Ritual Spell (optional)")]}],
+ "The Eye of Timaeus":[{k:"act",on:"act",once:"act",t:"Fusion Summon using 1 Dark Magician monster you control as the entire material",cond:"dmMonField",run:"fusEye"}],
+ "Magicalized Fusion":[{k:"act",on:"act",once:"act",t:"Fusion Summon a Spellcaster Fusion by banishing materials from your field or GY",run:"fusMagi"}],
+ "Magician's Salvation":[
+  {k:"act",on:"act",once:"act",t:"Set Eternal Soul directly from your Deck",grants:[G_("field",["deck"],"es","Eternal Soul (Set it in a Spell & Trap Zone)")]},
+  {k:"ss",t:"Dark Magician or Dark Magician Girl was summoned: Special Summon the other one from your GY",locs:["field"],once:"ss",cond:"dmOrDmgSummoned",run:"salvSS"}],
+ "Chaos Form":[{k:"act",on:"act",t:"Ritual Summon Illusion of Chaos with Levels that add up to exactly 7",cond:"chaosInHand",run:"ritChaos"}],
+ "Dark Magical Circle":[
+  {k:"act",on:"act",once:"act",t:"Look at the top 3 cards of your Deck and add Dark Magician or a Spell/Trap that mentions it",run:"circle"},
+  {k:"ban",t:"Dark Magician was summoned: banish 1 card your opponent controls",locs:["field"],once:"ban",cond:"dmSummoned",note:"There’s no opponent in free play, so nothing is banished. In a duel, this is your removal."}],
+ "Soul Servant":[
+  {k:"act",on:"act",t:"Put a Dark Magician card on top of your Deck from your hand, Deck or GY",run:"servant"},
+  {k:"gy",t:"Banish this card from your GY to draw 1 card for each different Dark Magician / Dark Magician Girl on the field and in the GYs",locs:["gy"],once:"gy",run:"servantDraw"}],
+ "Secrets of Dark Magic":[{k:"act",on:"act",t:"Fusion Summon or Ritual Summon, using Dark Magician or Dark Magician Girl",run:"secrets"}],
+ "The Gaze of Timaeus":[{k:"act",on:"act",once:"act",t:"Shuffle Dark Magician or Dark Magician Girl from your field or GY into the Deck to Fusion Summon",cond:"gazeTarget",run:"fusGaze"}],
+ "Dark Magic Talisman":[
+  {k:"act",on:"act",t:"Negate a monster effect activated in response to a Dark Magician card",note:"Use it when your opponent chains a monster effect to one of your Dark Magician cards. There’s no opponent in free play."},
+  {k:"gy",t:"You Special Summoned Dark Magician: pay 2500 LP to Set this card",locs:["gy"],cond:"dmSummoned",run:"talismanSet"}],
+ "Eternal Soul":[
+  {k:"act",on:"act",once:"e",t:"Special Summon Dark Magician from your hand or GY, or add Dark Magic Attack or Thousand Knives",run:"eternal"},
+  {k:"e",t:"Special Summon Dark Magician from your hand or GY, or add Dark Magic Attack or Thousand Knives",locs:["field"],once:"e",run:"eternal"}],
+ "The Dark Magicians":[
+  {k:"draw",t:"A Spell or Trap was activated: draw 1 card",locs:["field"],once:"draw",cond:"stActivated",run:"tdmDraw"},
+  {k:"gy",t:"This card was destroyed: Special Summon Dark Magician and Dark Magician Girl from your hand, Deck or GY",locs:["gy"],cond:"destroyed",
+   grants:[G_("field",["hand","deck","gy"],"dm","Dark Magician"),G_("field",["hand","deck","gy"],"dmg","Dark Magician Girl")]}],
+ "Master of Chaos":[
+  {k:"rev",t:"Fusion Summoned: Special Summon a LIGHT or DARK monster from your GY",locs:["field"],once:"rev",cond:"justFusion",sum:true,grants:[G_("field",["gy"],"lightDark","LIGHT or DARK monster")]},
+  {k:"wipe",t:"Tribute 1 LIGHT and 1 DARK monster to banish every monster your opponent controls",locs:["field"],once:"wipe",cost:C_("tribute","lightDark","LIGHT or DARK monster (1 of each)",["field"],"gy",{need:2,mon:true,other:true}),note:"There’s no opponent in free play, so nothing is banished."},
+  {k:"gy",t:"This Fusion Summoned card was destroyed: add a Spell from your GY to your hand",locs:["gy"],once:"gy",cond:"destroyed",grants:[G_("hand",["gy"],"spell","Spell")]}],
+ "Dark Magician the Knight of Dragon Magic":[
+  {k:"gy",t:"This card was destroyed: Special Summon Dark Magician from your hand, Deck, Extra Deck or GY",locs:["gy"],cond:"destroyed",grants:[G_("field",["hand","deck","gy"],"dm","Dark Magician")]}],
+ "Dark Magician of Destruction":[
+  {k:"add",t:"Special Summoned: add Dark Magician or a card that mentions it from your Deck",locs:["field"],cond:"justSummoned",sum:true,grants:[G_("hand",["deck"],"dmCard","Dark Magician, or a card that mentions it")]}],
+ "Timaeus the United Magical Dragon":[
+  {k:"atk",t:"Gain 100 ATK for each Spell in the GYs and banishment during damage calculation",locs:["field"],cond:"battle"},
+  {k:"pop",t:"Destroy a Spell/Trap on the field during your opponent’s turn",locs:["field"],cond:"oppTurn"}],
+ "Quintet Magician":[
+  {k:"wipe",t:"Fusion Summoned with 5 different Spellcasters: destroy every card your opponent controls",locs:["field"],cond:"quintet",sum:true,note:"There’s no opponent in free play, so nothing is destroyed."}],
+ "Miasma Necromancer":[
+  {k:"add",t:"Link Summoned: add a Level 5 or higher DARK Spellcaster from your GY to your hand",locs:["field"],once:"add",cond:"justLink",sum:true,run:"miasmaAdd",grants:[G_("hand",["gy"],"lv5darkSc","Level 5 or higher DARK Spellcaster")]},
+  {k:"ns",t:"Send a Spell/Trap from your hand or field to the GY, then Normal Summon a Spellcaster",locs:["field"],once:"ns",cost:C_("send","st","Spell/Trap",["hand","field"],"gy"),run:"miasmaNS"}]
+};
+function effectsOf(n){
+  return (FX[n]||[]).map((e,i)=>Object.assign({i,text:e.t,locs:e.on?null:(e.locs||["field"]),cost:e.cost||null,selfSS:!!e.ss,activated:!e.on},e));
+}
+const actFX=n=>(FX[n]||[]).find(e=>e.on==="act");
+function effectsHere(u){
+  const c=P.cards[u], from=locOf(c.where);
+  return effectsOf(c.n).filter(e=>e.activated && !e.selfSS && e.locs.includes(from) && !(from==="field" && c.pos==="set"));
+}
+function grantFrom(n,txt){
+  const e=(FX[n]||[]).find(x=>x.t===txt); if(!e||!e.grants) return "";
+  return addGrants(n,e.grants);
+}
+function addGrants(n,gs){
+  const add=gs.map(g=>Object.assign({src:n},JSON.parse(JSON.stringify(g))));
+  P.grants=(P.grants||[]).filter(x=>x.src!==n).concat(add);
+  const F={hand:g=>`add ${g.left} ${ph(g.phrase)} from your ${g.from.map(f=>SRC_WORD[f]).join(" or ")} to your hand`,
+    gy:g=>`send ${g.left} ${ph(g.phrase)} from your ${g.from.map(f=>SRC_WORD[f]).join(" or ")} to the GY`,
+    field:g=>`${/Set it/.test(g.phrase)?"Set":"Special Summon"} ${g.left} ${ph(g.phrase).replace(/ \(Set it.*\)/,"")} from your ${g.from.map(f=>SRC_WORD[f]).join(" or ")}`};
+  return " "+add.map(g=>`You can now ${F[g.dest](g)}.`).join(" ");
+}
+function grantText(){ return (P.grants||[]).map(g=>`${g.src}: ${ph(g.phrase)} from ${(g.from||["deck"]).map(f=>SRC_WORD[f]).join("/")}`).join(" · "); }
+function useGrant(g){
+  g.left--; if(g.left>0) return;
+  const i=P.grants.indexOf(g); if(i>=0) P.grants.splice(i,1);
+  if(g.then==="top1"){ const src=Object.keys(P.cards).find(u=>P.cards[u].n===g.src && P.cards[u].where==="hand");
+    P.owed={u:src||null,src:g.src,act:"top",self:false,left:1,phrase:"@any|card",from:["hand"],to:"top",other:false,mon:false};
+    setTimeout(()=>say(`${g.src}: now put 1 card from your hand on top of your Deck. Drag it onto your Deck.`),30); }
+  // Gaze/other grants that are optional just expire at end of turn
+}
+function permCheck(u,src,dest){
+  const n=P.cards[u].n, gs=(P.grants||[]).filter(g=>g.dest===dest && (g.from||["deck"]).includes(src));
+  const where={deck:"your Deck",gy:"your GY",hand:"your hand"}[src];
+  const verb={hand:`add a card from ${where} to your hand`,gy:`send a card from ${where} to the GY`,field:`play a card from ${where} onto the field`,ban:`banish a card from ${where}`,top:`put a card from ${where} on top of your Deck`}[dest];
+  if(!gs.length) return { err:`No card effect is letting you ${verb} right now. Use a card’s effect first by holding it, and it will tell you what you can take.` };
+  const g=gs.find(g=>fitsPhrase(n,g.phrase));
+  if(!g){ const x=gs[0]; return { err:`${x.src}’s effect only lets you take ${ph(x.phrase)}. ${n} doesn’t fit that.` }; }
+  return {g};
+}
+function owe(u,e){ const c=e.cost; P.owed={u,src:P.cards[u].n,act:c.act,self:c.self,left:c.need,phrase:c.phrase,from:c.from,to:c.to,other:!!c.other,mon:!!c.mon}; }
+function pays(u,dest){
+  const o=P.owed; if(!o||dest!==o.to) return false;
+  const c=P.cards[u]; if(!o.from.includes(locOf(c.where))) return false;
+  if(isZone(c.where) && c.pos==="set" && o.act!=="tribute") return false;
+  if(o.self) return u===o.u;
+  if(o.other && u===o.u) return false;
+  if(o.mon && !isMonZone(c.where)) return false;
+  return fitsPhrase(c.n,o.phrase);
+}
+function payOwed(u,dest){
+  const o=P.owed, c=P.cards[u], n=c.n, from=locOf(c.where);
+  const fw= from==="field"?" from the field":" "+(FROM[from]||"");
+  place(u,dest); o.left--;
+  const did= o.act==="top"?`Put ${n} on top of your Deck` : o.act==="discard"?`Discarded ${n}` : o.act==="tribute"?`Tributed ${n}` : dest==="ban"?`Banished ${n}${fw}` : `Sent ${n}${fw} to the GY`;
+  if(o.left>0) say(`${did}. ${o.src}’s cost isn’t fully paid yet.`);
+  else { P.owed=null; say(o.act==="top"? `${did}. ${o.src}’s effect is done, so you can carry on.` : `${did} to pay for ${o.src}’s effect. Cost paid, so you can carry on.`); runAfterPay(o); }
+  renderPlay();
+}
+function runAfterPay(o){ if(o.after==="miasmaNS"){ P.x.extraNS=true; say(`Cost paid. You can now Normal Summon 1 Spellcaster monster, even though you already used your Normal Summon.`); } }
+
+// ---- Once per turn ----
+function optCheck(n,ok,e){
+  if(!e || !e.once){ P.used[n]=(P.used[n]||0)+1; return ok(); }
+  const key=n+"|"+e.once; P.x.usedK=P.x.usedK||{};
+  if(P.x.usedK[key]) return no(e.on==="act"? `You can only activate 1 ${n} per turn, and you already did this turn.` : `You can only use that effect of ${n} once per turn, and you already used it this turn.`);
+  P.x.usedK[key]=1; P.used[n]=(P.used[n]||0)+1; ok();
+}
+const usedK=(n,k)=>!!((P.x.usedK||{})[n+"|"+k]);
+
+// ---- Conditions ----
+const faceUpMons=()=>monsters().filter(m=>P.cards[m].pos!=="set");
+const dmOnField=()=>faceUpMons().some(m=>nameIs(m,DMN));
+const summonedNow=m=>P.cards[m].placedTurn===P.turn && P.cards[m].pos!=="set";
+function condErr(u,e){
+  if(!e) return "";
+  const c=P.cards[u], n=c.n;
+  if(e.sum && (c.fxDone||[]).includes(e.k)) return `${n} already used that effect since it was summoned.`;
+  switch(e.cond){
+    case "justNS": return c.nsTurn===P.turn? "" : `${n}’s search only works right after it’s Normal Summoned, and it wasn’t Normal Summoned this turn.`;
+    case "justSummoned": return c.placedTurn===P.turn? "" : `${n}’s effect only works right after it’s summoned, and it wasn’t summoned this turn.`;
+    case "justFusion": return c.placedTurn===P.turn && c.fusion? "" : `${n}’s effect only works right after it’s Fusion Summoned.`;
+    case "justLink": return c.placedTurn===P.turn && c.link? "" : `${n}’s effect only works right after it’s Link Summoned.`;
+    case "quintet": return c.placedTurn===P.turn && c.fusion && c.q5? "" : `Quintet Magician only does this when it’s Fusion Summoned with 5 Spellcasters that all have different names.`;
+    case "controlDM": return dmOnField()? "" : `${n} needs you to control Dark Magician. Dragon Knight and Destruction count, since they’re treated as Dark Magician on the field.`;
+    case "dmMonField": return faceUpMons().some(m=>/Dark Magician/.test(P.cards[m].n)||nameIs(m,DMN))? "" : `${n} needs a face-up Dark Magician monster on your field to use as the material.`;
+    case "gazeTarget": return [...faceUpMons(),...Object.keys(P.cards).filter(k=>P.cards[k].where==="gy")].some(m=>nameIs(m,DMN)||nameIs(m,DMGN))? "" : `${n} needs Dark Magician or Dark Magician Girl on your field or in your GY.`;
+    case "chaosInHand": return Object.keys(P.cards).some(k=>P.cards[k].where==="hand" && /Chaos|Black Luster Soldier/.test(P.cards[k].n) && ritN(P.cards[k].n))? "" : `Chaos Form needs a Chaos Ritual Monster in your hand. Reveal-search or use Preparation of Rites to get Illusion of Chaos first.`;
+    case "dmSummoned": return faceUpMons().some(m=>nameIs(m,DMN)&&summonedNow(m))? "" : `This only works right after Dark Magician is summoned. Dragon Knight and Destruction count too.`;
+    case "dmOrDmgSummoned": return faceUpMons().some(m=>(nameIs(m,DMN)||nameIs(m,DMGN))&&summonedNow(m))? "" : `This only works right after you summon Dark Magician or Dark Magician Girl.`;
+    case "stActivated": return P.x.stAct? "" : `The Dark Magicians draws only after a Spell or Trap is activated this turn.`;
+    case "oppTurn": return `That effect is used on your opponent’s turn. Free play only has your turns, so it can’t be used here.`;
+    case "battle": return `That effect works during a battle. Free play doesn’t simulate battles yet.`;
+    case "tookDamage": return "";
+    case "scDestroyed": return "";
+    case "destroyed": return c.where==="gy" && c.gyTurn===P.turn? "" : `This only works the turn ${n} is destroyed.`;
+  }
+  return "";
+}
+
+// ---- Moving cards ----
+function place(u,where,o={}){
+  const c=P.cards[u]; const i=P.deck.indexOf(u); if(i>=0) P.deck.splice(i,1);
+  const wasUpES = c.n==="Eternal Soul" && isZone(c.where) && c.pos==="up";
+  let top=false; if(where==="top"){ where="deck"; top=true; }
+  if(KIND[c.n]==="extra" && (where==="hand"||where==="deck")) where="extra";
+  c.prev=c.where; c.where=where; c.t=++P.t; if(where==="gy") c.gyTurn=P.turn;
+  if(!isZone(where)){ delete c.pos; c.lvMod=0; delete c.placedTurn; delete c.posTurn; delete c.toGY; delete c.fxDone; delete c.fusion; delete c.link; delete c.q5; delete c.gaze; }
+  if(where==="extra") delete c.proper;
+  if(where==="deck"){ if(top) P.deck.push(u); else P.deck.splice(Math.floor(Math.random()*(P.deck.length+1)),0,u); }
+  Object.assign(c,o);
+  if(isZone(where) && c.prev!==where) delete c.fxDone;
+  if(wasUpES && !isZone(where)){
+    const ms=monsters(); ms.forEach(m=>{ const mc=P.cards[m]; mc.prev=mc.where; mc.where="gy"; mc.t=++P.t; mc.gyTurn=P.turn; delete mc.pos; delete mc.placedTurn; delete mc.fusion; delete mc.fxDone; });
+    if(ms.length) setTimeout(()=>toast(`Eternal Soul left the field face-up, so every monster you control was destroyed.`,true),40);
+  }
+}
+function moveTo(u,where,msg){
+  const c=P.cards[u];
+  if(where==="hand" && KIND[c.n]==="extra") msg=`${c.n} went back to the Extra Deck, since Extra Deck monsters can’t go to the hand.`;
+  if(where==="deck" && KIND[c.n]==="extra") msg=`${c.n} went back to the Extra Deck.`;
+  place(u,where); say(msg); renderPlay();
+}
+
+// ---- Summons ----
+function tryNormal(u,zone,set){
+  const c=P.cards[u];
+  if(ritN(c.n)) return P.x.rit? tryRitual(u,zone) : no(`${c.n} is a Ritual Monster, so it can’t be Normal Summoned or Set. Activate Chaos Form or Secrets of Dark Magic first, then drag it onto the field.`);
+  const extra = P.normalUsed && P.x.extraNS && scN(c.n) && !set;
+  if(P.normalUsed && !extra) return no(P.x.extraNS? "Miasma Necromancer’s extra Normal Summon has to be a Spellcaster, face-up." : "You’ve already Normal Summoned or Set a monster this turn. You get one per turn.");
+  if(zone && EMZ.includes(zone)) return no("Only monsters Summoned from the Extra Deck can go in an Extra Monster Zone.");
+  const L=lvl(u), need = L==null?0 : L>=7?2 : L>=5?1 : 0, mons=monsters();
+  if(need>mons.length) return no(`${c.n} is Level ${L}, so it needs ${need} Tribute${need>1?"s":""}. You only control ${mons.length} monster${mons.length===1?"":"s"}.`);
+  const finish=tribs=>{
+    endSelect(); tribs.forEach(t=>place(t,"gy"));
+    const z = zone && !occ(zone) ? zone : freeMZ();
+    if(!z) return no("All 5 of your Monster Zones are full.");
+    if(extra) P.x.extraNS=false; else P.normalUsed=true;
+    place(u,z,{pos:set?"set":"atk",placedTurn:P.turn}); if(!set) P.cards[u].nsTurn=P.turn; setDropMode("spa");
+    say(set? `Set ${c.n} face-down in Defense Position.` : `Normal Summoned ${c.n}${tribs.length?` by Tributing ${tribs.length} monster${tribs.length>1?"s":""}`:""}${extra?" with Miasma Necromancer’s extra Normal Summon":""}.`);
+    renderPlay();
+  };
+  if(need) return startSelect({kind:"tribute",need,title:`Tap ${need} monster${need>1?"s":""} to Tribute for ${c.n}.`,done:finish});
+  if(zone && occ(zone)) return no("That zone already has a card in it.");
+  if(!zone && !freeMZ()) return no("All 5 of your Monster Zones are full.");
+  finish([]);
+}
+
+// A pop-up list where you tap cards to pick them, then Confirm
+function pickSheet(o){
+  const box=document.getElementById("mbox"); box.className="sheet";
+  const sel=new Set(o.pre||[]);
+  const where=u=>{ const w=P.cards[u].where; return w==="hand"?"hand":w==="gy"?"GY":w==="deck"?"Deck":w==="ban"?"banished":"field"; };
+  const draw=()=>{
+    box.innerHTML=`<div class="hd"><div><h3>${esc(o.title)}</h3>${o.msg?`<p>${esc(o.msg)}</p>`:""}</div></div>`;
+    o.cands.forEach(u=>{ const c=P.cards[u], b=document.createElement("button"); b.className="pk"+(sel.has(u)?" on":"");
+      const L=isMonKind(c.n)&&lvl(u)!=null? ` · Level ${lvl(u)}`:"";
+      b.innerHTML=`<span>${esc(c.n)}</span><small>${where(u)}${L}</small>`;
+      b.onclick=()=>{ if(sel.has(u)) sel.delete(u); else { if(o.max===1) sel.clear(); if(sel.size<o.max) sel.add(u); } draw(); };
+      box.appendChild(b); });
+    if(!o.cands.length){ const p=document.createElement("p"); p.className="wnote"; p.textContent=o.empty||"Nothing can be picked right now."; box.appendChild(p); }
+    const ok=document.createElement("button"); ok.className="primary cancel"; ok.textContent=o.ok||"Confirm";
+    ok.disabled = sel.size<(o.min||0);
+    ok.onclick=()=>{ const s=[...sel]; const er=o.check? o.check(s) : ""; if(er){ toast(er,true); return; } closeCard(); o.done(s); };
+    box.appendChild(ok);
+    const cx=document.createElement("button"); cx.className="cancel"; cx.textContent="Cancel"; cx.onclick=()=>{ closeCard(); if(o.cancel) o.cancel(); say("Cancelled."); renderPlay(); }; box.appendChild(cx);
+  };
+  draw(); modal.classList.add("on");
+}
+function choose(n,msg,opts){ sheet(n,null,msg,opts.map(([l,f])=>[l,f])); }
+const inW=w=>Object.keys(P.cards).filter(u=>P.cards[u].where===w);
+const handC=()=>inW("hand").sort(byT), gyC=()=>inW("gy").sort(byT);
+
+// ---- Fusion materials ----
+const isDMu=u=>nameIs(u,DMN), isDMGu=u=>nameIs(u,DMGN);
+const raceU=u=>Dn(P.cards[u].n).race, attrU=u=>Dn(P.cards[u].n).attribute;
+const REC={
+  "Dark Magician the Dragon Knight":{lists:[DMN],slots:[isDMu,u=>raceU(u)==="Dragon"],txt:"Dark Magician + 1 Dragon monster"},
+  "The Dark Magicians":{lists:[DMN,DMGN],slots:[u=>isDMu(u)||isDMGu(u),u=>raceU(u)==="Spellcaster"],txt:"Dark Magician or Dark Magician Girl + 1 Spellcaster monster"},
+  "Master of Chaos":{lists:[DMN],slots:[isDMu,u=>ritN(P.cards[u].n)&&/Chaos|Black Luster Soldier/.test(P.cards[u].n)],txt:"Dark Magician + 1 Chaos or Black Luster Soldier Ritual Monster"},
+  "Dark Magician the Knight of Dragon Magic":{lists:[DMN],slots:[isDMu,u=>["Dragon","Warrior"].includes(raceU(u))&&(lvl(u)||Dn(P.cards[u].n).level||0)>=7],txt:"Dark Magician + 1 Level 7 or higher Dragon or Warrior monster"},
+  "Dark Magician of Destruction":{lists:[DMN],slots:[isDMu,u=>["LIGHT","DARK"].includes(attrU(u))],txt:"Dark Magician + 1 LIGHT or DARK monster"},
+  "Timaeus the United Magical Dragon":{lists:[DMN,DMGN],slots:[u=>isDMu(u)||isDMGu(u),u=>["Dragon","Spellcaster"].includes(raceU(u))],txt:"Dark Magician or Dark Magician Girl + 1 Dragon or Spellcaster monster"},
+  "Quintet Magician":{lists:[],slots:[1,2,3,4,5].map(()=>u=>raceU(u)==="Spellcaster"),txt:"5 Spellcaster monsters"}
+};
+function recipeErr(fn,mats){
+  const r=REC[fn]; if(!r) return `${fn} isn’t a Fusion Monster.`;
+  if(mats.length!==r.slots.length) return `${fn} needs ${r.slots.length} materials: ${r.txt}. You picked ${mats.length}.`;
+  if(r.slots.length===2){ const [a,b]=mats, [s1,s2]=r.slots; if((s1(a)&&s2(b))||(s1(b)&&s2(a))) return ""; return `Those aren’t the right materials. ${fn} needs ${r.txt}.`; }
+  return mats.every(m=>r.slots[0](m))? "" : `Those aren’t the right materials. ${fn} needs ${r.txt}.`;
+}
+const FUSWHO={secrets:"Secrets of Dark Magic",timaeus:"Timaeus the United Dragon",eye:"The Eye of Timaeus",gaze:"The Gaze of Timaeus",magi:"Magicalized Fusion"};
+function fusCands(m){
+  const fu=faceUpMons(), hand=handC().filter(u=>isMonKind(P.cards[u].n)), gy=gyC().filter(u=>isMonKind(P.cards[u].n));
+  if(m==="secrets"||m==="timaeus") return [...fu,...hand];
+  if(m==="eye") return fu.filter(u=>/Dark Magician/.test(P.cards[u].n)||isDMu(u));
+  if(m==="gaze") return [...fu,...gy].filter(u=>isDMu(u)||isDMGu(u));
+  if(m==="magi") return [...fu,...gy];
+  return [];
+}
+function fusionModeErr(m,fn,mats){
+  if(m==="secrets" && !mats.some(u=>isDMu(u)||isDMGu(u))) return "Secrets of Dark Magic needs Dark Magician or Dark Magician Girl as one of the materials.";
+  if(m==="timaeus" && !mats.some(u=>raceU(u)==="Spellcaster")) return "Timaeus’s Fusion needs a Spellcaster as one of the materials.";
+  if(m==="magi" && Dn(fn).race!=="Spellcaster") return "Magicalized Fusion can only Fusion Summon a Spellcaster Fusion Monster.";
+  if(m==="eye"||m==="gaze"){
+    if(mats.length!==1) return `${FUSWHO[m]} uses exactly 1 monster as the whole material.`;
+    const u=mats[0], ok=REC[fn] && REC[fn].lists.some(q=>nameIs(u,q)); if(!ok) return `${fn} doesn’t list ${P.cards[u].n} as a material, so ${FUSWHO[m]} can’t make it.`;
+    return "";
+  }
+  return recipeErr(fn,mats);
+}
+function startSynchro(u,zone){   // dragging any monster out of the Extra Deck lands here
+  const c=P.cards[u], n=c.n, t=Dn(n).type||"";
+  if(/Link/.test(t)) return startLink(u,zone);
+  const alt = n==="Dark Magician of Destruction" && !usedK(n,"summon");
+  if(P.x.fus && alt) return choose(n,`How are you summoning ${n}?`,[[`Fusion Summon it with ${FUSWHO[P.x.fus]}`,()=>startFusion(u,zone)],["Banish a Level 6+ DARK Spellcaster you control (its own summon)",()=>dmodAlt(u,zone)]]);
+  if(P.x.fus) return startFusion(u,zone);
+  if(alt) return dmodAlt(u,zone);
+  if(n==="Dark Magician of Destruction") return no("You can only Special Summon Dark Magician of Destruction once per turn, and you already did this turn.");
+  return no(`${n} is a Fusion Monster. Activate a Fusion card first: Secrets of Dark Magic, The Eye of Timaeus, The Gaze of Timaeus, Magicalized Fusion, or Timaeus the United Dragon’s effect.`);
+}
+function zoneFor(zone,leaving,kind){   // kind: "link" (Extra Monster Zone only), "ex" (any), "main" (Main Monster Zones)
+  const occX=k=>{ const o=occ(k); return o && !leaving.includes(o); };
+  const emzFree=z=>!occX(z) && !EMZ.some(o=>o!==z&&occX(o));
+  if(zone){ if(MZ.includes(zone) && kind!=="link" && !occX(zone)) return zone; if(EMZ.includes(zone) && kind!=="main" && emzFree(zone)) return zone; }
+  if(kind==="link") return EMZ.find(emzFree)||null;
+  return MZ.find(k=>!occX(k)) || (kind==="ex"? EMZ.find(emzFree)||null : null);
+}
+function startFusion(u,zone){
+  const fn=P.cards[u].n, m=P.x.fus;
+  if(m==="magi" && Dn(fn).race!=="Spellcaster") return no("Magicalized Fusion can only Fusion Summon a Spellcaster Fusion Monster.");
+  const r=REC[fn]; const n1=(m==="eye"||m==="gaze")?1:r.slots.length;
+  const how={secrets:"from your hand or field",timaeus:"from your hand or field",eye:"on your field (it becomes the whole material)",gaze:"on your field or in your GY (it’s shuffled into the Deck)",magi:"on your field or in your GY (they’re banished)"}[m];
+  pickSheet({title:`Fusion Summon ${fn}`,msg:`Materials: ${r.txt}. Pick ${n1} ${how}.`,cands:fusCands(m),min:n1,max:n1,empty:"You don’t have any monsters that can be used as material right now.",
+    check:s=>fusionModeErr(m,fn,s),
+    done:s=>{
+      const z=zoneFor(zone,s.filter(x=>isZone(P.cards[x].where)),"ex"); if(!z) return no("You have no open Monster Zone for that monster.");
+      const names=s.map(x=>P.cards[x].n), dest=m==="magi"?"ban":m==="gaze"?"deck":"gy";
+      s.forEach(x=>place(x,dest));
+      const q5 = fn==="Quintet Magician" && new Set(names).size===5;
+      place(u,z,{pos:"atk",placedTurn:P.turn,proper:true,fusion:true,q5,gaze:m==="gaze"?P.turn:undefined});
+      if(fn==="Dark Magician of Destruction") P.x.usedK[fn+"|summon"]=1;
+      P.x.fus=null;
+      const verb=dest==="ban"?"banishing":dest==="deck"?"shuffling":"using";
+      say(`Fusion Summoned ${fn} ${verb} ${names.join(" and ")}${dest==="deck"?" into the Deck":""}.${m==="gaze"?" Gaze banishes it during the End Phase of the next turn.":""}${fn==="Master of Chaos"?" Hold it to revive a LIGHT or DARK monster from your GY.":""}${q5?" All 5 names are different, so hold it to use its effect.":""}`);
+      renderPlay(); setTimeout(()=>fx(z,"Fusion Summon"),350);
+    }});
+}
+function dmodAlt(u,zone){
+  const n=P.cards[u].n;
+  if(!P.x.spellAct) return no(`${n} can only summon itself this way during a turn a Spell Card or effect was activated. Activate a Spell first.`);
+  const cands=faceUpMons().filter(m=>raceU(m)==="Spellcaster" && attrU(m)==="DARK" && (lvl(m)||0)>=6);
+  if(!cands.length) return no(`${n} needs a Level 6 or higher DARK Spellcaster you control to banish, like Apprentice Illusion Magician, Dark Magician Girl, Dark Magician or Illusion of Chaos.`);
+  pickSheet({title:`Special Summon ${n}`,msg:"Banish 1 Level 6 or higher DARK Spellcaster you control.",cands,min:1,max:1,
+    done:s=>{ const z=zoneFor(zone,s,"ex"); if(!z) return no("You have no open Monster Zone for that monster.");
+      const m=P.cards[s[0]].n; place(s[0],"ban"); place(u,z,{pos:"atk",placedTurn:P.turn,proper:true}); P.x.usedK[n+"|summon"]=1;
+      say(`Banished ${m} to Special Summon ${n}. It counts as Dark Magician. Hold it to add Dark Magician or a card that mentions it from your Deck.`);
+      renderPlay(); setTimeout(()=>fx(z,"Special Summon"),350); }});
+}
+function startLink(u,zone){
+  const n=P.cards[u].n;
+  const cands=faceUpMons();
+  if(cands.length<2) return no(`${n} needs 2 face-up monsters you control as material.`);
+  pickSheet({title:`Link Summon ${n}`,msg:"Materials: 2 monsters, including a DARK Spellcaster. It goes to an Extra Monster Zone.",cands,min:2,max:2,
+    check:s=>s.some(m=>raceU(m)==="Spellcaster"&&attrU(m)==="DARK")? "" : `${n} needs a DARK Spellcaster as one of its 2 materials.`,
+    done:s=>{ const z=zoneFor(zone,s,"link"); if(!z) return no("A Link Monster needs an open Extra Monster Zone."); 
+      const names=s.map(x=>P.cards[x].n); s.forEach(x=>place(x,"gy")); place(u,z,{pos:"atk",placedTurn:P.turn,proper:true,link:true});
+      say(`Link Summoned ${n} using ${names.join(" and ")}.`); renderPlay(); setTimeout(()=>fx(z,"Link Summon"),350); }});
+}
+
+// ---- Ritual Summons ----
+function tryRitual(u,zone){
+  const c=P.cards[u], r=P.x.rit, L=Dn(c.n).level||0;
+  if(r.mode==="chaos" && !/Chaos|Black Luster Soldier/.test(c.n)) return no("Chaos Form can only Ritual Summon a Chaos or Black Luster Soldier Ritual Monster.");
+  const mons=[...faceUpMons(),...handC().filter(x=>x!==u && isMonKind(P.cards[x].n) && KIND[P.cards[x].n]==="mon")];
+  const gyBan= r.mode==="chaos"? gyC().filter(x=>["Dark Magician","Blue-Eyes White Dragon"].includes(P.cards[x].n)) : [];
+  const lv=x=>P.cards[x].where==="gy"? (Dn(P.cards[x].n).level||0) : (lvl(x)||Dn(P.cards[x].n).level||0);
+  pickSheet({title:`Ritual Summon ${c.n} (Level ${L})`,
+    msg: r.mode==="chaos"? "Tribute monsters from your hand or field, and/or banish Dark Magician from your GY. Their Levels must add up to exactly "+L+"." : "Tribute monsters from your hand or field, including Dark Magician or Dark Magician Girl. Their Levels must add up to "+L+" or more.",
+    cands:[...mons,...gyBan],min:1,max:6,
+    check:s=>{ const sum=s.reduce((a,x)=>a+lv(x),0);
+      if(r.mode==="chaos" && sum!==L) return `Those add up to Level ${sum}. Chaos Form needs exactly ${L}.`;
+      if(r.mode==="secrets"){ if(sum<L) return `Those add up to Level ${sum}. You need ${L} or more.`; if(!s.some(x=>P.cards[x].n===DMN||P.cards[x].n===DMGN||nameIs(x,DMN))) return "Secrets of Dark Magic needs Dark Magician or Dark Magician Girl among the Tributes."; }
+      return ""; },
+    done:s=>{ const z = zoneFor(zone,s.filter(x=>isZone(P.cards[x].where)),"main"); if(!z) return no("You have no open Monster Zone for that monster.");
+      const t=[], b=[]; s.forEach(x=>{ const nm=P.cards[x].n; if(P.cards[x].where==="gy"){ place(x,"ban"); b.push(nm); } else { place(x,"gy"); t.push(nm); } });
+      place(u,z,{pos:"atk",placedTurn:P.turn,proper:true,ritual:true}); P.x.rit=null;
+      say(`Ritual Summoned ${c.n}${t.length?` by Tributing ${t.join(" and ")}`:""}${b.length?`${t.length?" and":""} by banishing ${b.join(" and ")} from your GY`:""}.`);
+      renderPlay(); setTimeout(()=>fx(z,"Ritual Summon"),350); }});
+}
+
+// ---- Using effects ----
+function flashEl(u){ const el=pEls[u], c=P.cards[u]; if(el && (isZone(c.where)||c.where==="hand")){ el.classList.add("act"); setTimeout(()=>el.classList.remove("act"),1500); } }
+function useEffect(u,pick){
+  const c=P.cards[u], src=locOf(c.where);
+  if((P.x.nameLock||[]).includes(c.n)) return no(`You added ${c.n} with Miasma Necromancer, so you can’t activate ${c.n} cards or effects for the rest of this turn.`);
+  const effs=effectsHere(u);
+  if(!effs.length){
+    const own=effectsOf(c.n).find(e=>e.selfSS&&e.locs.includes(src));
+    if(own) return no(`${c.n} Special Summons itself from your hand. Pick Special ATK or Special DEF under “Play cards as”, then drag it onto the field.`);
+    if(isZone(c.where) && isST(c.n) && c.pos==="up") return no(`${c.n} has no effect to use from the field right now.`);
+    if(KIND[c.n]==="spell" && src==="hand") return no(`Drag ${c.n} onto a Spell & Trap Zone to activate it.`);
+    return no(`${c.n} has no effect you can use from ${src==="field"?"the field":src==="gy"?"the GY":src==="hand"?"your hand":"there"} right now.`);
+  }
+  let e=pick;
+  if(!e){
+    // offer only the effects that can be used right now; if none can, explain the first one
+    const live=effs.filter(x=>!condErr(u,x) && !(x.once&&usedK(c.n,x.once)));
+    const short=t=>t.length>78? t.slice(0,76)+"…" : t;
+    if(live.length>1) return sheet(c.n,u,"Which effect are you using?",live.map(x=>[short(x.t),()=>useEffect(u,x)]));
+    e=live[0]||effs.find(x=>x.once&&usedK(c.n,x.once))||effs[0];
+  }
+  const ce=condErr(u,e); if(ce) return no(ce);
+  optCheck(c.n,()=>{
+    flashEl(u);
+    if(KIND[c.n]==="spell") P.x.spellAct=true;
+    if(isST(c.n)) P.x.stAct=true;
+    if(e.sum){ c.fxDone=(c.fxDone||[]).concat(e.k); }
+    if(e.cost) owe(u,e);
+    const gt=e.grants? addGrants(c.n,e.grants) : "";
+    const from={hand:" from your hand",gy:" from the GY",ban:" while banished"}[c.where]||"";
+    if(e.run && RUN[e.run]) return RUN[e.run](u,e,gt);
+    say(`Used ${c.n}’s effect${from}.${e.note?" "+e.note:""}${e.cost?" Pay its cost first: the light by your Life Points is on.":""}${gt}`); renderPlay();
+  },e);
+}
+function tryActivate(u,zone){
+  const c=P.cards[u], st=subType(c.n)||"Normal";
+  if(KIND[c.n]==="trap") return no("Traps have to be Set first. You can activate it starting next turn, unless a card says otherwise.");
+  if((P.x.nameLock||[]).includes(c.n)) return no(`You can’t activate ${c.n} again this turn.`);
+  if(st==="Field"){ if(zone && zone!=="field") return no("Field Spells go in the Field Zone."); }
+  else { if(zone==="field") return no("Only Field Spells go in the Field Zone."); if(zone && occ(zone)) return no("That zone already has a card in it."); if(!zone && !freeSZ()) return no("All 5 of your Spell & Trap Zones are full."); }
+  const e=actFX(c.n); const ce=condErr(u,e); if(ce) return no(ce);
+  optCheck(c.n,()=>{
+    if(st==="Field"){ const old=occ("field"); if(old) place(old,"gy"); place(u,"field",{pos:"up",placedTurn:P.turn}); }
+    else place(u,zone||freeSZ(),{pos:"up",placedTurn:P.turn});
+    resolveLater(u); P.x.spellAct=true; P.x.stAct=true;
+    runAct(u,e);
+  },e);
+}
+function activateSet(u){
+  const c=P.cards[u], st=subType(c.n)||"Normal", trap=KIND[c.n]==="trap";
+  const sameTurn=c.placedTurn===P.turn, dmAct=c.dmAct===P.turn;
+  const reveal=c.n==="Dark Magic Talisman" && handC().some(x=>scN(P.cards[x].n));
+  if(trap && sameTurn && !dmAct && !reveal) return no(c.n==="Dark Magic Talisman"? "Talisman can be activated the turn it’s Set only by revealing a Spellcaster in your hand, and you have none." : "You can’t activate a Trap the same turn you Set it.");
+  if(!trap && st==="Quick-Play" && sameTurn && !dmAct) return no("You can’t activate a Quick-Play Spell the same turn you Set it.");
+  const e=actFX(c.n); const ce=condErr(u,e); if(ce) return no(ce);
+  optCheck(c.n,()=>{ c.pos="up"; resolveLater(u); if(!trap) P.x.spellAct=true; P.x.stAct=true;
+    runAct(u,e, trap&&sameTurn&&reveal&&!dmAct? " You revealed a Spellcaster from your hand, so it can be activated the turn it was Set." : ""); },e);
+}
+function runAct(u,e,pre=""){
+  const c=P.cards[u];
+  flashEl(u);
+  if(e && e.cost) owe(u,e);
+  const gt=e && e.grants? addGrants(c.n,e.grants) : "";
+  const toGY=["Normal","Quick-Play","Ritual","Counter"].includes(subType(c.n)||"Normal");
+  const tail=toGY?" When you’re done with it, drag it to your GY.":"";
+  if(e && e.run && RUN[e.run]) return RUN[e.run](u,e,gt,pre+tail);
+  say(`Activated ${c.n}.${pre}${e&&e.note?" "+e.note:""}${gt}${tail}`); renderPlay();
+}
+const RUN={
+  soulsDraw(u){ const cands=[...handC(),...SZ.map(occ).filter(Boolean),occ("field")].filter(x=>x && isST(P.cards[x].n));
+    pickSheet({title:"Magicians’ Souls",msg:"Send up to 2 Spells/Traps from your hand or field to the GY. You draw that many.",cands,min:1,max:2,empty:"You have no Spells or Traps in your hand or on your field.",
+      done:s=>{ s.forEach(x=>place(x,"gy")); const d=[]; for(let i=0;i<s.length && P.deck.length;i++){ const t=P.deck[P.deck.length-1]; place(t,"hand"); d.push(P.cards[t].n); }
+        say(`Sent ${s.map(x=>P.cards[x].n).join(" and ")} to the GY and drew ${d.length}: ${d.join(", ")}.`); renderPlay(); },
+      cancel:()=>{ delete P.x.usedK["Magicians' Souls|draw"]; }}); },
+  soulsHand(u){ const n=P.cards[u].n;
+    if(!P.deck.some(x=>PRED.lv6sc(P.cards[x].n))){ delete P.x.usedK[n+"|hand"]; return no("Your Deck has no Level 6 or higher Spellcaster left to send."); }
+    choose(n,"First you’ll send a Level 6 or higher Spellcaster from your Deck to the GY. Then pick one:",[
+      ["Special Summon Magicians’ Souls",()=>{ say(`${n}: send a Level 6+ Spellcaster from your Deck to the GY, then Special Summon Souls from your hand.`+addGrants(n,[G_("gy",["deck"],"lv6sc","Level 6 or higher Spellcaster"),G_("field",["hand"],"souls","Magicians’ Souls")])); renderPlay(); }],
+      ["Send Souls to the GY, then revive Dark Magician or Dark Magician Girl",()=>{ place(u,"gy"); say(`Sent ${n} to the GY.`+addGrants(n,[G_("gy",["deck"],"lv6sc","Level 6 or higher Spellcaster"),G_("field",["gy"],"dmOrDmg","Dark Magician or Dark Magician Girl")])); renderPlay(); }]]); },
+  fusTimaeus(u,e){ P.x.fus="timaeus"; say("Timaeus’s effect: open your Extra Deck and drag the Fusion Monster you want onto a Monster Zone, then pick materials from your hand or field. One must be a Spellcaster."); renderPlay(); },
+  fusEye(u,e,gt,tail){ P.x.fus="eye"; say(`Activated The Eye of Timaeus. Drag a Fusion Monster that lists your Dark Magician monster from your Extra Deck onto the field. That one monster is the whole material.${tail||""}`); renderPlay(); },
+  fusGaze(u,e,gt,tail){ P.x.fus="gaze"; say(`Activated The Gaze of Timaeus. Drag a Fusion Monster that lists Dark Magician or Dark Magician Girl from your Extra Deck onto the field. The material is shuffled into the Deck, and the Fusion is banished at the end of the next turn.${tail||""}`); renderPlay(); },
+  fusMagi(u,e,gt,tail){ P.x.fus="magi"; say(`Activated Magicalized Fusion. Drag a Spellcaster Fusion Monster from your Extra Deck onto the field, then pick materials from your field or GY. They’re banished.${tail||""}`); renderPlay(); },
+  ritChaos(u,e,gt,tail){ P.x.rit={mode:"chaos"}; say(`Activated Chaos Form. Now drag Illusion of Chaos from your hand onto a Monster Zone and pick Tributes adding up to exactly Level 7.${tail||""}`); renderPlay(); },
+  secrets(u,e,gt,tail){ const n=P.cards[u].n;
+    choose(n,"Which effect are you using?",[
+      ["Fusion Summon, including Dark Magician or Dark Magician Girl as material",()=>{ P.x.fus="secrets"; say(`Secrets of Dark Magic: drag a Fusion Monster from your Extra Deck onto the field, then pick materials from your hand or field.${tail||""}`); renderPlay(); }],
+      ["Ritual Summon, Tributing Dark Magician or Dark Magician Girl",()=>{ P.x.rit={mode:"secrets"}; say(`Secrets of Dark Magic: drag a Ritual Monster from your hand onto the field, then pick Tributes including Dark Magician or Dark Magician Girl.${tail||""}`); renderPlay(); }]]); },
+  circle(u,e,gt,tail){ const top=P.deck.slice(-3).reverse();
+    if(!top.length) return say("Your Deck is empty, so Circle has nothing to look at.");
+    const box=document.getElementById("mbox"); box.className="sheet";
+    box.innerHTML=`<div class="hd"><div><h3>Dark Magical Circle</h3><p>The top ${top.length} cards of your Deck, top card first. You can add one that’s Dark Magician or a Spell/Trap that mentions it. The rest stay on top in this order.</p></div></div>`;
+    const done=pick=>{ closeCard(); if(pick){ place(pick,"hand"); say(`Dark Magical Circle added ${P.cards[pick].n} to your hand.${tail||""}`); } else say(`Dark Magical Circle didn’t add anything.${tail||""}`); renderPlay(); };
+    top.forEach(x=>{ const n=P.cards[x].n, ok=n===DMN||(isST(n)&&ment(n,DMN)); const b=document.createElement("button"); b.className="pk"; b.innerHTML=`<span>${esc(n)}</span><small>${ok?"Tap to add it":"Can’t be added"}</small>`; b.disabled=!ok; b.onclick=()=>done(x); box.appendChild(b); });
+    const no_=document.createElement("button"); no_.className="cancel"; no_.textContent="Don’t add any"; no_.onclick=()=>done(null); box.appendChild(no_);
+    modal.classList.add("on"); },
+  servant(u,e,gt,tail){
+    const fit=n=>n!=="Soul Servant" && (n===DMN||ment(n,DMN)||ment(n,DMGN));
+    const seen=new Set(), cands=[...handC(),...P.deck.slice().sort((a,b)=>P.cards[a].n.localeCompare(P.cards[b].n)),...gyC()].filter(x=>{ const c=P.cards[x]; if(!fit(c.n)) return false; const k=c.n+"|"+c.where; if(seen.has(k)) return false; seen.add(k); return true; });
+    pickSheet({title:"Soul Servant",msg:"Pick a card that is Dark Magician or mentions Dark Magician or Dark Magician Girl. It goes on top of your Deck.",cands,min:1,max:1,
+      done:s=>{ const x=s[0], w=P.cards[x].where; place(x,"top"); say(`Soul Servant put ${P.cards[x].n} from your ${w==="gy"?"GY":w==="hand"?"hand":"Deck"} on top of your Deck.${tail||""}`); renderPlay(); }}); },
+  servantDraw(u){ const names=new Set();
+    Object.keys(P.cards).forEach(x=>{ const c=P.cards[x]; if(!((isMonZone(c.where)&&c.pos!=="set")||c.where==="gy")) return;
+      if(nameIs(x,DMN)) names.add(DMN); else if(nameIs(x,DMGN)) names.add(DMGN); else if(/^Palladium/.test(c.n)) names.add(c.n); });
+    if(!names.size){ delete P.x.usedK["Soul Servant|gy"]; return no("There’s no Dark Magician or Dark Magician Girl on the field or in the GY, so Soul Servant would draw 0."); }
+    place(u,"ban"); const d=[]; for(let i=0;i<names.size && P.deck.length;i++){ const t=P.deck[P.deck.length-1]; place(t,"hand"); d.push(P.cards[t].n); }
+    say(`Banished Soul Servant. ${names.size} different name${names.size>1?"s":""} counted (${[...names].join(", ")}), so you drew ${d.length}: ${d.join(", ")}.`); renderPlay(); },
+  salvSS(u){ const sum=faceUpMons().filter(m=>summonedNow(m));
+    const want = sum.some(m=>nameIs(m,DMN)) && !sum.some(m=>nameIs(m,DMGN))? "dmg" : sum.some(m=>nameIs(m,DMGN)) && !sum.some(m=>nameIs(m,DMN))? "dm" : "dmOrDmg";
+    say(`Magician’s Salvation: Special Summon the one with a different name from your GY.`+addGrants("Magician's Salvation",[G_("field",["gy"],want,want==="dm"?"Dark Magician":want==="dmg"?"Dark Magician Girl":"Dark Magician or Dark Magician Girl")])); renderPlay(); },
+  talismanSet(u){ const z=freeSZ(); if(!z) return no("All 5 of your Spell & Trap Zones are full.");
+    if(P.x.lp<2500) return no("You need at least 2500 Life Points to pay for this.");
+    P.x.lp-=2500; place(u,z,{pos:"set",placedTurn:P.turn}); say(`Paid 2500 LP and Set Dark Magic Talisman from your GY. You have ${P.x.lp} LP.`); renderPlay(); },
+  eternal(u,e,gt,tail){ const n=P.cards[u].n;
+    choose(n,"Which effect are you using?",[
+      ["Special Summon Dark Magician from your hand or GY",()=>{ say(`Eternal Soul: Special Summon Dark Magician from your hand or GY.`+addGrants(n,[G_("field",["hand","gy"],"dm","Dark Magician")])); renderPlay(); }],
+      ["Add Dark Magic Attack or Thousand Knives from your Deck",()=>{ say(`Eternal Soul: add Dark Magic Attack or Thousand Knives from your Deck.`+addGrants(n,[G_("hand",["deck"],"dmaTk","Dark Magic Attack or Thousand Knives")])); renderPlay(); }]]); },
+  tdmDraw(u){ if(!P.deck.length) return no("Your Deck is empty."); const t=P.deck[P.deck.length-1]; place(t,"hand"); const n=P.cards[t].n;
+    const st=isST(n), act=KIND[n]==="trap"||subType(n)==="Quick-Play"; if(act) P.cards[t].dmAct=P.turn;
+    say(`The Dark Magicians drew ${n}.${st?" You can Set it"+(act?", and since it’s a "+(KIND[n]==="trap"?"Trap":"Quick-Play Spell")+" you can activate it this turn.":"."):""}`); renderPlay(); },
+  miasmaAdd(u,e,gt){ say(`Miasma Necromancer: add a Level 5 or higher DARK Spellcaster from your GY.${gt} You won’t be able to activate cards with that name for the rest of this turn.`); P.x.miasmaPending=true; renderPlay(); },
+  miasmaNS(u){ P.owed.after="miasmaNS"; say("Miasma Necromancer: send 1 Spell/Trap from your hand or field to the GY to pay the cost. Then you get an extra Normal Summon for a Spellcaster."); renderPlay(); }
+};
+
+// ---- Drag and drop ----
+function dropAt(u,x,y,ban){
+  const c0=P.cards[u];
+  const k0=ban?"ban":zoneAt(x,y), inHand0=!ban && y>G.boardH;
+  if(P.owed){
+    const dest= k0==="ban"?"ban" : k0==="gy"?"gy" : k0==="deck"?"top" : null;
+    if(dest && pays(u,dest)) return payOwed(u,dest);
+    if(!inHand0 && !k0) return;
+    if(k0===c0.where || (inHand0 && c0.where==="hand")) return;
+    return no(dest===P.owed.to && P.owed.from.includes(locOf(c0.where)) ? "That card can’t be used for this." : OWE_MSG);
+  }
+  if(c0.where==="deck"){
+    const dest= inHand0?"hand" : k0==="gy"?"gy" : k0==="ban"?"ban" : (k0 && isZone(k0))?"field" : null;
+    if(dest){ const r=permCheck(u,"deck",dest); if(r.err) return no(r.err);
+      const res=dropInner(u,x,y,ban);
+      if(P.cards[u].where!=="deck"){ useGrant(r.g); renderPlay(); }
+      return res; }
+  }
+  if(c0.where==="gy"){
+    if(inHand0){ const r=permCheck(u,"gy","hand"); if(r.err) return no(r.err);
+      const res=dropInner(u,x,y,ban); if(P.cards[u].where!=="gy"){ useGrant(r.g); if(P.x.miasmaPending && r.g.src==="Miasma Necromancer"){ P.x.nameLock=(P.x.nameLock||[]).concat(P.cards[u].n); P.x.miasmaPending=false; } renderPlay(); } return res; }
+    if(k0 && isZone(k0) && !isMonKind(c0.n)){ const r=permCheck(u,"gy","field"); if(r.err) return no(r.err);
+      const res=dropInner(u,x,y,ban); if(P.cards[u].where!=="gy"){ useGrant(r.g); renderPlay(); } return res; }
+  }
+  return dropInner(u,x,y,ban);
+}
+function dropInner(u,x,y,ban){
+  if(P.owed) return no(OWE_MSG);
+  const c=P.cards[u], n=c.n, w=c.where, ex=KIND[n]==="extra", mon=isMonKind(n);
+  const k=ban?"ban":zoneAt(x,y), inHand=!ban && y>G.boardH, from=isZone(w)?"":" "+(FROM[w]||"");
+  if(inHand){
+    if(w==="hand") return;
+    if(ex) return no(`${n} is an Extra Deck monster, so it can’t go to your hand.`);
+    return moveTo(u,"hand", w==="deck"?`Added ${n} from your Deck to your hand.`:`Returned ${n} to your hand${from}.`);
+  }
+  if(!k || k===w) return;
+  if(k.startsWith("o")) return no("That’s your opponent’s side of the field.");
+  if(k==="ban") return moveTo(u,"ban",`Banished ${n}${from}.`);
+  if(k==="gy") return moveTo(u,"gy", w==="hand"?`Sent ${n} from your hand to the GY.`:`Sent ${n}${from} to the GY.`);
+  if(k==="deck"){ if(ex) return no("Extra Deck monsters go back to the Extra Deck, not your main Deck."); if(w==="deck") return; return moveTo(u,"deck",`Shuffled ${n} into your Deck.`); }
+  if(k==="extra"){ if(!ex) return no("Only Fusion and Link Monsters go in the Extra Deck."); return moveTo(u,"extra",`Returned ${n} to your Extra Deck.`); }
+  if(isZone(w)) return no("You can’t move a card to a different zone without a card effect that lets you.");
+  if(mon){
+    if(SZ.includes(k)||k==="field") return no("Monsters go in your Monster Zones, the row above your Spell & Trap Zones.");
+    if(w==="extra") return startSynchro(u,k);
+    if(w==="hand" && ritN(n)) return P.x.rit? tryRitual(u,k) : no(`${n} is a Ritual Monster. Activate Chaos Form or Secrets of Dark Magic first, then drag it onto the field.`);
+    const hg = w==="hand" && (P.grants||[]).some(g=>g.dest==="field"&&(g.from||[]).includes("hand")&&fitsPhrase(n,g.phrase));
+    if(hg && dropMode==="normal") return trySpecial(u,k,"atk");
+    if(w==="hand" && (dropMode==="normal"||dropMode==="set")){
+      const ok=tryNormal(u,k,dropMode==="set");
+      if(P.normalUsed && P.cards[u].where!=="hand") setDropMode("spa");
+      return ok;
+    }
+    if(ex===false && (w==="gy"||w==="ban") && ritN(n) && !c.proper) return no(`${n} was never properly Ritual Summoned, so it can’t be Special Summoned from there.`);
+    return trySpecial(u,k,dropMode==="spd"?"def":"atk");
+  }
+  if(isMonZone(k)) return no("Spells and Traps go in your Spell & Trap Zones, the bottom row.");
+  if(KIND[n]==="trap"){ if(k==="field") return no("Only Field Spells go in the Field Zone."); return trySet(u,k); }
+  if(k==="field" && subType(n) && subType(n)!=="Field") return no("Only Field Spells go in the Field Zone.");
+  if(SZ.includes(k) && subType(n)==="Field") return no("Field Spells go in the Field Zone, on the left.");
+  return dropMode==="set"? trySet(u,k) : tryActivate(u,k);
+}
+
+// ---- Status line, Life Points and undo ----
+function pstat(){
+  document.getElementById("stepk").textContent=`Free play · Turn ${P.turn}`;
+  let s = P.normalUsed ? (P.x.extraNS? "Normal Summon: used, plus 1 extra for a Spellcaster" : "Normal Summon: used this turn") : "Normal Summon: available";
+  if(P.x.fus) s += ` · Fusion ready (${FUSWHO[P.x.fus]}): drag a Fusion Monster out of your Extra Deck`;
+  if(P.x.rit) s += ` · Ritual ready: drag Illusion of Chaos from your hand onto the field`;
+  if(P.x.spellAct) s += " · A Spell was activated this turn";
+  const gtx=grantText(); if(gtx) s += ` · Waiting: ${gtx}`;
+  document.getElementById("pstat").textContent=s;
+  const ow=document.getElementById("owe"); ow.classList.toggle("on",!!(P.owed||pendGY())); ow.setAttribute("aria-label",P.owed?"Something still needs to be done":"");
+  document.getElementById("pBan").textContent=`Banished (${Object.values(P.cards).filter(c=>c.where==="ban").length})`;
+  const lp=document.querySelectorAll(".lp b"); if(lp[1]) lp[1].textContent=P.x.lp;
+}
+function freshX(lp){ return {fus:null,rit:null,spellAct:false,stAct:false,usedK:{},extraNS:false,nameLock:[],lp:lp==null?8000:lp,miasmaPending:false}; }
+function ser(){ return JSON.stringify({cards:P.cards,deck:P.deck,t:P.t,turn:P.turn,normalUsed:P.normalUsed,used:P.used,lock:P.lock,grants:P.grants||[],owed:P.owed||null,x:P.x,dm:dropMode}); }
+function undo(){
+  if(P.sel) endSelect();
+  const h=hist.pop(); if(!h) return no("Nothing to undo yet.");
+  const o=JSON.parse(h.s); Object.assign(P,{cards:o.cards,deck:o.deck,t:o.t,turn:o.turn,normalUsed:o.normalUsed,used:o.used,lock:o.lock,grants:o.grants||[],owed:o.owed||null,x:o.x||freshX()});
+  setDropMode(o.dm||"normal"); lastState=h.s;
+  restoring=true; renderPlay(); restoring=false;
+  document.getElementById("pUndo").disabled=!hist.length;
+  say(`Undid: ${h.cap}`);
+}
+function newGame(){
+  for(const u in pEls){ pEls[u].remove(); delete pEls[u]; }
+  Object.assign(P,{cards:{},deck:[],t:0,turn:1,normalUsed:false,used:{},usedE:{},lock:null,sel:null,grants:[],owed:null,lvOwed:null,x:freshX()}); hist=[]; lastState=null;
+  let id=0; const mk=(n,w)=>{ const u="p"+(id++); P.cards[u]={n,where:w,t:0}; return u; };
+  const main=[]; ["Monsters","Spells","Traps"].forEach(s=>DECK[s].forEach(([q,n])=>{ for(let i=0;i<q;i++) main.push(mk(n,"deck")); }));
+  DECK["Extra Deck"].forEach(([q,n])=>{ for(let i=0;i<q;i++) mk(n,"extra"); });
+  P.deck=shuffle(main);
+  for(const u in P.cards) makePEl(u);
+  for(let i=0;i<5;i++) place(P.deck[P.deck.length-1],"hand");
+  endSelect(); setDropMode("normal");
+  say("New duel. You drew 5 cards. You’re going first, so there’s no draw this turn. Drag a card onto the field to play it. Tap any card for its details and tips.");
+  renderPlay(false);
+}
+function endTurnDM(){
+  if(P.sel) return no("Finish picking cards first, or tap Cancel.");
+  if(P.owed) return no(OWE_MSG);
+  if(pendGY()) return no("Drag the Spell you activated to your GY first, then end your turn.");
+  const h=Object.values(P.cards).filter(c=>c.where==="hand").length;
+  if(h>6) return no(`You have ${h} cards in hand. Discard down to 6 before ending your turn.`);
+  const gone=Object.keys(P.cards).filter(u=>isZone(P.cards[u].where) && P.cards[u].gaze===P.turn);
+  gone.forEach(u=>place(u,"ban"));
+  P.turn++; P.normalUsed=false; P.used={}; P.usedE={}; P.lock=null; P.grants=[]; P.x=freshX(P.x.lp); setDropMode("normal");
+  const g=gone.length? ` During your opponent’s End Phase, The Gaze of Timaeus banished ${gone.map(u=>P.cards[u].n).join(" and ")}.` : "";
+  if(!P.deck.length){ say(`Turn ${P.turn}. Your Deck is empty, so you can’t draw. In a real duel, you’d lose here.${g}`); return renderPlay(); }
+  const u=P.deck[P.deck.length-1]; place(u,"hand");
+  say(`Turn ${P.turn}. You drew ${P.cards[u].n}. Your Normal Summon and once-per-turn effects are available again.${g}`);
+  renderPlay();
+}
+document.getElementById("pNext").onclick=endTurnDM;
+
+// ---- Coach: what can I do right now? ----
+function whatNow(){
+  if(!P.cards) return;
+  const hand=handC(), H=n=>hand.find(u=>P.cards[u].n===n), F=n=>faceUpMons().find(u=>P.cards[u].n===n), GY=n=>gyC().find(u=>P.cards[u].n===n);
+  const inDeck=n=>P.deck.some(u=>P.cards[u].n===n), fieldST=n=>[...SZ,"field"].map(occ).find(u=>u&&P.cards[u].n===n&&P.cards[u].pos==="up");
+  const tips=[], add=(p,t)=>tips.push({p,t});
+  if(P.owed) add(0,"Finish what you started first: the light is on because a cost is still owed or a card has to go back on top of your Deck.");
+  if(pendGY()) add(1,"Drag the Spell you activated to your GY once you’ve applied its effect.");
+  if(P.x.fus) add(2,`${FUSWHO[P.x.fus]} is waiting: open your Extra Deck and drag the Fusion Monster you want onto a Monster Zone.`);
+  if(P.x.rit) add(2,"Your Ritual Spell is waiting: drag Illusion of Chaos from your hand onto a Monster Zone and pick the Tributes.");
+  if(P.grants.length) add(3,"You still have an effect to finish: "+grantText()+". Open the pile and drag the card out.");
+  if(H("Illusion of Chaos") && !usedK("Illusion of Chaos","rev")) add(10,"Reveal Illusion of Chaos (hold it) to add Dark Magician or a monster that mentions it. Put a card you don’t need right now back on top.");
+  if(H("Preparation of Rites")) add(11,"Activate Preparation of Rites to add Illusion of Chaos, and Chaos Form back from your GY if it’s there.");
+  if(H("Magician's Rod") && !P.normalUsed) add(12,"Normal Summon Magician’s Rod, then hold it to add a Spell/Trap that mentions Dark Magician.");
+  const rod=F("Magician's Rod"); if(rod && P.cards[rod].nsTurn===P.turn && !(P.cards[rod].fxDone||[]).includes("ns")) add(9,"Hold Magician’s Rod to use its search. Magician’s Salvation is great if you don’t have Eternal Soul yet.");
+  if(H("Magician's Salvation") && !usedK("Magician's Salvation","act") && inDeck("Eternal Soul")) add(13,"Activate Magician’s Salvation in your Field Zone and Set Eternal Soul from your Deck.");
+  if(H("Apprentice Illusion Magician") && hand.length>=2) add(14,"Special Summon Apprentice Illusion Magician by discarding a card you don’t need. Then hold it to add Dark Magician.");
+  const aim=F("Apprentice Illusion Magician"); if(aim && P.cards[aim].placedTurn===P.turn && !(P.cards[aim].fxDone||[]).includes("add") && inDeck(DMN)) add(9,"Hold Apprentice Illusion Magician to add Dark Magician from your Deck.");
+  if(H("Magicians' Souls") && !usedK("Magicians' Souls","hand") && P.deck.some(x=>PRED.lv6sc(P.cards[x].n))) add(15,"Hold Magicians’ Souls in your hand: send a Level 6+ Spellcaster from your Deck to the GY, then summon Souls or revive Dark Magician or Dark Magician Girl.");
+  if(H("Dark Magical Circle") && !usedK("Dark Magical Circle","act")) add(16,"Activate Dark Magical Circle. It looks at your top 3 cards, so put a card on top first with Illusion of Chaos or Soul Servant if you can.");
+  if(H("Soul Servant")) add(17,"Activate Soul Servant to put the Dark Magician card you want most on top of your Deck.");
+  if(GY("Soul Servant") && !usedK("Soul Servant","gy") && [...faceUpMons(),...gyC()].some(m=>nameIs(m,DMN)||nameIs(m,DMGN))) add(8,"Hold Soul Servant in your GY and banish it to draw cards.");
+  const dmod=Object.keys(P.cards).find(u=>P.cards[u].n==="Dark Magician of Destruction" && P.cards[u].where==="extra");
+  if(dmod && P.x.spellAct && !usedK("Dark Magician of Destruction","summon") && faceUpMons().some(m=>raceU(m)==="Spellcaster"&&attrU(m)==="DARK"&&(lvl(m)||0)>=6)) add(7,"You’ve activated a Spell and control a Level 6+ DARK Spellcaster: drag Dark Magician of Destruction out of your Extra Deck and banish that Spellcaster.");
+  const dF=F("Dark Magician of Destruction"); if(dF && P.cards[dF].placedTurn===P.turn && !(P.cards[dF].fxDone||[]).includes("add")) add(8,"Hold Dark Magician of Destruction to add a card that mentions Dark Magician. The Gaze of Timaeus is the usual pick.");
+  if(H("Timaeus the United Dragon") && !usedK("Timaeus the United Dragon","ss")) add(18,"Special Summon Timaeus the United Dragon by sending a Spellcaster or a Dark Magician Spell/Trap from your hand or field to the GY.");
+  if(F("Timaeus the United Dragon") && !usedK("Timaeus the United Dragon","fus")) add(9,"Hold Timaeus to Fusion Summon. With Dark Magician in your hand, Dark Magician the Dragon Knight protects your Spells and Traps.");
+  if(H("Chaos Form") && H("Illusion of Chaos")) add(19,"Activate Chaos Form to Ritual Summon Illusion of Chaos. Dark Magician alone is exactly Level 7.");
+  if(H("Secrets of Dark Magic") && [...faceUpMons(),...hand].some(m=>nameIs(m,DMN)||nameIs(m,DMGN))) add(20,"Secrets of Dark Magic can Fusion Summon or Ritual Summon now that you have Dark Magician or Dark Magician Girl.");
+  if(H("The Eye of Timaeus") && faceUpMons().some(m=>nameIs(m,DMN)||/Dark Magician/.test(P.cards[m].n))) add(21,"The Eye of Timaeus can turn your Dark Magician monster into a Fusion all by itself.");
+  if(H("The Gaze of Timaeus")) add(30,"Set The Gaze of Timaeus to use on your opponent’s turn, unless you need a Fusion right now.");
+  if(fieldST("Magician's Salvation") && faceUpMons().some(m=>(nameIs(m,DMN)||nameIs(m,DMGN))&&summonedNow(m)) && !usedK("Magician's Salvation","ss") && gyC().some(m=>nameIs(m,DMN)||nameIs(m,DMGN))) add(8,"Hold Magician’s Salvation to revive the other one of Dark Magician / Dark Magician Girl from your GY.");
+  const traps=hand.filter(u=>KIND[P.cards[u].n]==="trap"), freeS=SZ.filter(z=>!occ(z)).length;
+  if(traps.length && freeS) add(40,`Set your Trap${traps.length>1?"s":""} (${[...new Set(traps.map(u=>P.cards[u].n))].join(", ")}) before you end your turn.`);
+  tips.sort((a,b)=>a.p-b.p);
+  const box=document.getElementById("mbox"); box.className="sheet";
+  const best=tips[0], rest=tips.slice(1,7);
+  box.innerHTML=`<div class="hd"><div><h3>What now?</h3><p>Based on your board, hand, GY and the effects you’ve already used this turn.</p></div></div>`+
+    (best? `<div class="wn best"><b>Best next move</b><br>${esc(best.t)}</div>` : `<div class="wn best"><b>Nothing left to build</b><br>You’re out of plays this turn. Set any cards you want to keep face-down, then end your turn.</div>`)+
+    (rest.length? `<div class="wn"><b>Other options</b><ul>${rest.map(x=>`<li>${esc(x.t)}</li>`).join("")}</ul></div>` : "")+
+    `<p class="wnote">These are suggestions from what’s open right now, not a guaranteed best line. A full Best play solver comes in a later update.</p>`;
+  const b=document.createElement("button"); b.textContent="Close"; b.className="cancel"; b.onclick=closeCard; box.appendChild(b);
+  modal.classList.add("on");
+}
+
+
+// ===== Lines for Watch and Practice =====
+let lineIdx=0, lineCtx=null;
+function loadLine(L,start=0){
+  qReset(); stop(); stage.querySelectorAll(".banner,.flash").forEach(e=>e.remove());
+  for(const id in cardEls){ cardEls[id].remove(); delete cardEls[id]; }
+  for(const k in INST) delete INST[k]; for(const k in INIT) delete INIT[k];
+  Object.assign(INST,L.inst); Object.assign(INIT,L.init);
+  STEPS.length=0; L.steps.forEach(s=>STEPS.push(s));
+  makeCards(); applyImages();
+  if(mode!=="watch" && mode!=="practice"){ for(const id in cardEls) cardEls[id].style.display="none"; return; }
+  layout();
+  cur=Math.min(start,STEPS.length-1);
+  if(mode==="practice"){ right=0; tries=0; render(cur,false); const fb=document.getElementById("fbk"); fb.textContent=""; fb.className="fbk"; ask(); }
+  else render(cur,false);
+}
+function pickLine(i){
+  lineIdx=i; const L=LINES[i];
+  document.getElementById("lineSel").value=String(i);
+  document.getElementById("lineBlurb").textContent=L.blurb;
+  loadLine(L);
+}
+(function(){
+  const sel=document.getElementById("lineSel");
+  sel.innerHTML=LINES.map((L,i)=>`<option value="${i}">${esc(L.name)}</option>`).join("");
+  sel.onchange=()=>pickLine(+sel.value);
+  document.getElementById("lineBlurb").textContent=LINES[0].blurb;
+})();
+function showNext(){
+  const opts=document.getElementById("opts"); opts.innerHTML="";
+  const b=document.createElement("button"); b.className="primary nextq";
+  b.textContent = cur>=STEPS.length-1? "Finish ▶" : "Next move ▶";
+  b.onclick=()=>{ const fb=document.getElementById("fbk"); fb.textContent=""; fb.className="fbk"; ask(); };
+  opts.appendChild(b); b.focus({preventScroll:true});
+}
+
+// ===== Styles: the popular ways to play the deck =====
+function buildStyles(){
+  const v=document.getElementById("stylesview"); v.innerHTML="";
+  const intro=document.createElement("p"); intro.className="sintro";
+  intro.textContent="The most common ways people play Dark Magician right now, using the cards in your deck. Tap a card name to read it.";
+  v.appendChild(intro);
+  STYLES.forEach((s,i)=>{
+    const a=document.createElement("article"); a.className="style";
+    const li = s.line? LINES.findIndex(L=>L.key===s.line) : -1;
+    a.innerHTML=`<h2>${esc(s.name)}</h2><p class="what">${esc(s.what)}</p><p>${esc(s.how)}</p>`+
+      `<div class="chips">${s.cards.map(n=>`<button class="chip" data-n="${esc(n)}">${esc(n)}</button>`).join("")}</div>`+
+      `<p class="watch">${esc(s.watch)}</p>`+
+      (li>=0? `<div class="ctrls"><button class="primary" data-w="${li}">Watch this line</button><button data-p="${li}">Practice it</button></div>` : "");
+    v.appendChild(a);
+  });
+  const note=document.createElement("p"); note.className="snote"; note.textContent=STYLE_NOTE; v.appendChild(note);
+  v.querySelectorAll(".chip").forEach(b=>b.onclick=()=>openCard(b.dataset.n));
+  v.querySelectorAll("[data-w]").forEach(b=>b.onclick=()=>{ setMode("watch"); pickLine(+b.dataset.w); window.scrollTo({top:0}); });
+  v.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{ setMode("practice"); pickLine(+b.dataset.p); window.scrollTo({top:0}); });
+}
+
+function setMode(m){
+  mode=m; stop(); qReset(); document.body.classList.toggle("playing",m==="play");
+  ["Watch","Practice","Play","Deck","Styles"].forEach(x=>document.getElementById("t"+x).classList.toggle("on", x.toLowerCase()===m));
+  const off = m==="deck"||m==="styles";
+  document.getElementById("duelview").style.display = off ? "none" : "";
+  document.getElementById("deckview").style.display = m==="deck" ? "block" : "none";
+  document.getElementById("stylesview").style.display = m==="styles" ? "block" : "none";
+  document.getElementById("lineBar").style.display = (m==="watch"||m==="practice") ? "" : "none";
+  document.getElementById("watchCtrls").style.display = m==="watch" ? "" : "none";
+  document.getElementById("practice").style.display = m==="practice" ? "" : "none";
+  document.getElementById("playCtrls").style.display = m==="play" ? "" : "none";
+  document.getElementById("hint").textContent = m==="play"
+    ? "Tap a card for its details and tips. Drag cards to play them. Hold a card to use its effect or activate a Set card. Double-tap a monster to change its position. Tap your GY, Deck or Extra Deck to look inside, and drag cards out of them when an effect lets you."
+    : m==="practice" ? "Pick the best move. After a correct answer, read the explanation, then tap Next move." : "Tap any card on the field or in your hand to see its art and full text.";
+  for(const id in cardEls) cardEls[id].style.display = (m==="watch"||m==="practice") ? "" : "none";
+  for(const u in pEls) if(m!=="play") pEls[u].style.display="none";
+  document.getElementById("cap").className="";
+  if(m==="practice"){ right=0; tries=0; go(0); const fb=document.getElementById("fbk"); fb.textContent=""; fb.className="fbk"; ask(); }
+  if(m==="deck") buildDeck();
+  if(m==="styles") buildStyles();
+  if(m==="play") requestAnimationFrame(()=>{ layout(); if(!P.cards) newGame(); else { say("Back to your duel."); renderPlay(false); } });
+  else if(!off) requestAnimationFrame(()=>{ layout(); render(cur,false); });
+}
+document.getElementById("tStyles").onclick=()=>setMode("styles");
+
+let rt; window.addEventListener("resize",()=>{ clearTimeout(rt); rt=setTimeout(()=>{ if(mode==="play"){ layout(); renderPlay(false); } else if(mode!=="deck"){ layout(); render(cur,false); } },120); });
+
+(async function init(){
+  layout(); makeCards(); render(0,false);
+  await loadDB(); if(mode==="play") renderPlay(false); if(mode==="deck") buildDeck();
+  const st=document.getElementById("status"); st.textContent="Loading card pictures…";
+  const ok=await preloadImages();
+  applyImages(); applyPImages(); if(mode==="play") renderPlay(false); if(mode==="deck") buildDeck();
+  st.textContent = ok.some(Boolean) ? "" : "Card pictures couldn’t load on this connection. Everything else still works.";
+})();
+
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
